@@ -1,5 +1,6 @@
 backend:
-  name: git-gateway
+  name: github
+  repo: alarmringing/interactive-portfolio
   branch: master
   commit_messages:
     create: 'Create {{collection}} “{{slug}}”'
@@ -7,6 +8,8 @@ backend:
     delete: 'Delete {{collection}} “{{slug}}”'
     uploadMedia: '[skip ci] Upload “{{path}}”'
     deleteMedia: '[skip ci] Delete “{{path}}”'
+
+site_url: http://jiheehwang.netlify.app
 
 media_folder: static/img
 public_folder: /img
@@ -30,9 +33,9 @@ collections:
   - name: "pages"
     label: "Pages"
     files:
-      - file: "src/pages/index.md"
-        label: "Landing Page"
-        name: "index"
+      - file: "src/pages/old_index.md"
+        label: "Tutorial Landing Page"
+        name: "old_index"
         fields:
           - {label: "Template Key", name: "templateKey", widget: "hidden", default: "index-page"}
           - {label: Title, name: title, widget: string}
