@@ -1,16 +1,13 @@
 import React from "react"
-import { Canvas } from 'react-three-fiber'
+import ThreeFiberPractice from './three-fiber-practice.js'
 
 import '../styles/threepractice.scss'
 
 const App = () => {
   return (
-    <Canvas>
-      <mesh>
-        <boxBufferGeometry attach="geometry" args={1,1,1} />
-        <meshBasicMaterial attach="material" color="pink" />
-      </mesh>
-    </Canvas>
+    <div>
+      <ThreeFiberPractice />
+    </div>
   )
 }
 
