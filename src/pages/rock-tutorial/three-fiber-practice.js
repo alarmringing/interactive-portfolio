@@ -1,15 +1,29 @@
 import React, { useRef, useEffect, useLayoutEffect, useState } from "react"
 import { Canvas, useFrame, useThree } from 'react-three-fiber'
 
-import { getState } from '../utils/store.js'
+import { getState } from './store.js'
 
-import '../styles/threepractice.scss'
+//import './threepractice.scss'
 
 const Rock = () => {
   const rockRef = useRef();
 
+  const {gl} = useThree()
+  const [toggle, setToggle] = useState(true)
+  const [hover, setHover] = useState(false)
+
+  const onHover = () => { setHover(!hover) }
+
+  useLayoutEffect(() => {
+    if (hover) {
+      gl.domElement.classList.add("onHover")
+      return
+    }
+    gl.domElement.classList.remove("onHover")
+  }, [hover, gl])
+
   useFrame(() => {
-    if (rockRef.current) {
+    if (toggle && rockRef.current) {
       const { advance } = getState();
       const rotations = advance("rock", "rotation", state => {
         const [x, y, z] = state.rock.rotation
@@ -24,9 +38,11 @@ const Rock = () => {
       rotation: [0, 0, 0],
     })
   }, [])
-
   return (
-    <mesh ref={rockRef} castShadow position={[0, 0.5, 0]}>
+    <mesh ref={rockRef} castShadow position={[0, 0.5, 0]}
+          scale={hover ? [1.25, 1.25, 1.25] : [1, 1, 1]}
+          onPointerDown={() => {setToggle(!toggle)}}
+          onPointerOver={onHover} onPointerOut={onHover}>
       <dodecahedronGeometry attach="geometry" args={[1, 0]} />
       <meshPhysicalMaterial attach="material" color="pink" />
     </mesh>
@@ -44,18 +60,21 @@ const Ground = () => {
 
 const ThreeFiberPractice = () => {
   return (
-    <Canvas shadowMap>
-      <ambientLight intensity={0.75} />
-      <pointLight intensity={0.25} position={[5, 0, 5]} />
-      <spotLight
-        castShadow
-        position={[-5, 2.5, 5]}
-        intensity={0.25}
-        penumbra={1}
-      />
-      <Rock />
-      <Ground />
-    </Canvas>
+    <>
+      ThreeFiberPractice starting.
+      <Canvas shadowMap>
+        <ambientLight intensity={0.75} />
+        <pointLight intensity={0.25} position={[5, 0, 5]} />
+        <spotLight
+          castShadow
+          position={[-5, 2.5, 5]}
+          intensity={0.25}
+          penumbra={1}
+        />
+        <Rock />
+        <Ground />
+      </Canvas>
+    </>
   )
 }
 
