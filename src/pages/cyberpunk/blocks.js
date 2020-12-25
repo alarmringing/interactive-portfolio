@@ -7,14 +7,12 @@ import useStore from './state.js'
 const offsetContext = createContext(0)
 
 const Block = ({children, offset, factor, ...props}) => {
-  console.log("Testing if block works")
   const ref = useRef()
   // Fetch parent offset and the height of a single section
   const { offset: parentOffset, sectionHeight } = useBlock()
   offset = offset !== undefined ? offset : parentOffset //offset is parentOffset if undefined
 
   const [top, zoom] = useStore(state => [state.top, state.zoom])
-  console.log("Block was constructed, I think")
 
   // runs every frame and lerps the inner block into its place
   useFrame(() => {
@@ -24,10 +22,11 @@ const Block = ({children, offset, factor, ...props}) => {
 
   return (
     <>
-      Is something working?
       <offsetContext.Provider value={offset}>
         <group {...props} position={[0, -sectionHeight * offset * factor, 0]}>
-          <group ref={ref}>{children}</group>
+          <group ref={ref}>
+            {children}
+          </group>
         </group>
       </offsetContext.Provider>
     </>
@@ -35,7 +34,7 @@ const Block = ({children, offset, factor, ...props}) => {
 }
 
 const useBlock = () => {
-  const [sections, pages] = useStore(state => [state.sections, state.pages])
+  const [sections, pages, zoom] = useStore(state => [state.sections, state.pages, state.zoom])
   const { size, viewport } = useThree()
   const offset = useContext(offsetContext)
   const viewportWidth = viewport.width

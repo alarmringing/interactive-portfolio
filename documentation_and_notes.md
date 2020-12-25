@@ -1,6 +1,11 @@
 
+# Personal notes from development (will be edited later)
 
-
+- This project was bootstrapped using gatsby-starter-netlify-cms
+- react-three-fiber [tutorial](https://engineering.icf.com/getting-started-with-a-3d-react-workflow/)
+- used and installed zustand for state management
+- reacts suspense for asynchronous asset loading and loading screens.
+- cyberpunk practice needs react-three-fiber 4 beta.
 
 
 # Legacy notes from Gatsby + Netlify CMS Starter

@@ -19,6 +19,10 @@ body {
   overflow: hidden;
 }
 
+.cnavas > div {
+  z-index: 1;
+}
+
 canvas {
   height: 100%;
   margin: 0;
