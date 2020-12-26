@@ -6,14 +6,28 @@ import shallow from 'zustand/shallow'
 import lerp from 'lerp'
 import {Block, useBlock} from './blocks.js'
 import useStore from './state.js'
+import './CustomMaterial'
 
 const Plane = ({color='blue', map, ...props}) => {
   // map in a mesh acts as a texture.
+  const [pages, top] = useStore(state => [state.pages, state.top])
+  const { viewportHeight, offsetFactor } = useBlock()
+  const material = useRef()
+  let lastTop = top.current
+  useFrame(() => {
+    //let scale = 0.2
+    let scale = lerp(material.current.scale, offsetFactor - (top.current / ((pages - 1) * viewportHeight))/150, 0.1 )
+    let shift = lerp(material.current.shift, (top.current - lastTop)/150, 0.1)
+    //console.log("scale is ", scale)
+    material.current.scale = scale
+    material.current.shift = shift
+    lastTop = top.current
+  })
 
   return (
     <mesh {...props}>
-      <planeBufferGeometry attach='geometry'/>
-      <meshBasicMaterial attach='material' color={color} map={map} />
+      <planeBufferGeometry attach='geometry' args={[1, 1, 32, 32]}/>
+      <customMaterial ref={material} attach='material' color={color} map={map} />
     </mesh>
   )
 }
