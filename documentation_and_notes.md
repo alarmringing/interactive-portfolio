@@ -6,7 +6,8 @@
 - used and installed zustand for state management
 - reacts suspense for asynchronous asset loading and loading screens.
 - cyberpunk practice needs react-three-fiber 4 beta.
-
+- kinetic typography uses three-bmfont-text, and vanilla threejs.
+- When you want to import just by using html://URL/FILEPATH use the static folder (static/FILEPATH gets served there). It's better to [import assets directly in the javascript file](https://www.gatsbyjs.com/docs/how-to/images-and-media/importing-assets-into-files/)
 
 # Legacy notes from Gatsby + Netlify CMS Starter
 
