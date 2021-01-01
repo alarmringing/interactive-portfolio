@@ -8,6 +8,11 @@
 - cyberpunk practice needs react-three-fiber 4 beta.
 - kinetic typography uses three-bmfont-text, and vanilla threejs.
 - When you want to import just by using html://URL/FILEPATH use the static folder (static/FILEPATH gets served there). It's better to [import assets directly in the javascript file](https://www.gatsbyjs.com/docs/how-to/images-and-media/importing-assets-into-files/)
+- MSDFShader.js is modified to match GLSL 3.0 standards 
+- You can just decare variable called 'control' to set mouse controls
+- three-bmfont-text only works with ASCII characters for now.
+
+
 
 # Legacy notes from Gatsby + Netlify CMS Starter
 

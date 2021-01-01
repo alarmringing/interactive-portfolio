@@ -55,7 +55,7 @@ const Scene = () => {
 		rtCamera.position.z = 2.5
 
 		let rtScene = new THREE.Scene()
-		rtScene.background = new THREE.Color("#000000")
+		rtScene.background = new THREE.Color("#FFFFFF")
 
 
 		// load font files
@@ -72,7 +72,7 @@ const Scene = () => {
 						let fontMaterial = new THREE.RawShaderMaterial(
 												MSDFShader({
 													map: texture,
-													color: 0xFFFFFF,
+													color: 0x000000,
 													side: THREE.DoubleSide,
 													transparent: true,
 													negate: false
@@ -99,10 +99,10 @@ const Scene = () => {
 			rtScene.add(textMesh)
 		}
 
-		let mesh
+		let mesh, geometry, material
 		let createSceneMesh = () => {
-			let geometry = new THREE.BoxGeometry(1, 1, 1);
-			let material = new THREE.ShaderMaterial({
+			geometry = new THREE.BoxGeometry(1, 1, 1);
+			material = new THREE.ShaderMaterial({
 				vertexShader:vert,
 				fragmentShader:frag,
 				uniforms: {
@@ -141,6 +141,7 @@ const Scene = () => {
 
 		let renderScene = () => {
 			controls.update()
+			material.uniforms.uTime.value = clock.getElapsedTime()
 
 			mesh.rotation.x += 0.005
 			mesh.rotation.z += 0.005 
