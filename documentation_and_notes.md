@@ -11,7 +11,8 @@
 - MSDFShader.js is modified to match GLSL 3.0 standards 
 - You can just decare variable called 'control' to set mouse controls
 - three-bmfont-text only works with ASCII characters for now.
-
+- In the kinetic-typography example, torus looks weird but this seems to be a fault of its geometry implementation itself, not the text texture.
+- Cannon js is the physics library we are using. 
 
 
 # Legacy notes from Gatsby + Netlify CMS Starter
