@@ -13,6 +13,7 @@
 - three-bmfont-text only works with ASCII characters for now.
 - In the kinetic-typography example, torus looks weird but this seems to be a fault of its geometry implementation itself, not the text texture.
 - Cannon js is the physics library we are using. 
+- Font loader (for font geometry) needs a .json font library, which can be generated [here](https://gero3.github.io/facetype.js/). Only .ttf format font files work.
 
 
 # Legacy notes from Gatsby + Netlify CMS Starter
