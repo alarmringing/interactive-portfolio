@@ -1,23 +1,38 @@
 import React, { useRef, useEffect, useLayoutEffect, useState } from "react"
 import { Canvas, useFrame, useThree, extend } from 'react-three-fiber'
+import { Stats } from '@react-three/drei'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
 extend({ OrbitControls })
 
-const Ground = () => {
-  return (
-    <mesh receiveShadow position={[0, -1, 0]} rotation={[-Math.PI/2, 0, 0]}>
-      <planeBufferGeometry attach="geometry" args={[100, 100, 100]} />
-      <meshPhysicalMaterial attach="material" color="brown" />
-    </mesh>
-  )
-}
+const saekdongColors = ['#ffffff', '#293985', '#b83280', '#f2d44a', '#67213d', '#408f4f', '#c03435']
+const saekdongColors2 = ['#ffffff', '#002df8', '#ff269d', '#ffe900', '#920061', '#10cd48', '#fa203c']
+const saekdongColors3 = ['#ffffff', '#1a3699', '#c81787', '#ffc428', '#843b97', '#0eab50', '#e71739']
 
-const Stick = () => {
+const Stick = ({index, numSticks}) => {
+  const stickRef = useRef()
+  const width = 1
+  const height = 100
+
+  const totalSticksWidth = width * Math.sqrt(2) * numSticks
+  const position = [-(totalSticksWidth/2) + index * width * Math.sqrt(2), 0, 0]
+  const color = saekdongColors2[index % saekdongColors.length]
+
+  const [rotation, setRotation] = useState([0, 0, 0])
+
+  // Constructor
+  useEffect(() => {
+  }, [])
+
+  // useFrame(() => {
+  //   setRotation(rotation => [0, rotation[1] + 0.01, 0])
+  //   stickRef.current.rotation.set(...rotation);
+  // })
+
   return (
-    <mesh>
-      <cubeGeometry attach="geometry" args={[3, 30, 3]} />
-      <meshPhysicalMaterial attach="material" color="blue" />
+    <mesh ref={stickRef} position={position}>
+      <cubeGeometry attach="geometry" args={[width, height, width] } />
+      <meshPhysicalMaterial attach="material" color={color} />
     </mesh>
   )
 }
@@ -33,16 +48,29 @@ const Controls = () => {
 }
 
 const Scene = () => {
+  const numSticks = 150
+  const [sticks, setSticks] = useState([])
 
-
+  useEffect(() => {
+    for (let i = 0; i < numSticks; i++) {
+      let newStick = {index:i}
+      setSticks( sticks => [...sticks, newStick]);
+    }
+  },[])
 
   return (
     <>
-      Lenticular starting.
+      <Stats
+        showPanel={0} // Start-up panel (default=0)
+        className="stats" // Optional className to add to the stats container dom element
+      />
       <Canvas style={{height: '100vh', width: '100vw'}}
-              orthographic
+              orthographic         
+              onCreated={({ gl, camera }) => {
+                gl.setClearColor('#030303')
+              }}>
       >
-        <ambientLight intensity={0.75} color={0x929253} />
+        <ambientLight intensity={1} />
         <pointLight intensity={0.25} position={[5, 0, 5]} />
         <spotLight
           castShadow
@@ -51,8 +79,12 @@ const Scene = () => {
           penumbra={1}
         />
         <Controls />
-        <Stick />
-        <Ground />
+        {sticks.map(stick => {
+           return (
+               <Stick key={stick.index} index={stick.index} numSticks={numSticks}/>
+           )
+        })}
+        <Stick index={0} maxIndex={3}/>
       </Canvas>
     </>
   )
