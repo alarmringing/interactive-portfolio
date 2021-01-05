@@ -1,7 +1,8 @@
 import * as THREE from 'three'
-import React, { useRef, useEffect, useLayoutEffect, useState } from "react"
+import React, { Suspense, useRef, useEffect, useLayoutEffect, useState } from "react"
 import { Canvas, useFrame, useThree, extend } from 'react-three-fiber'
-import { Stats } from '@react-three/drei'
+import { Html, Stats, useTexture } from '@react-three/drei'
+import lerp from 'lerp'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
 import './lenticularShader.js'
@@ -13,6 +14,10 @@ const saekdongColors = ['#ffffff', '#293985', '#b83280', '#f2d44a', '#67213d', '
 const saekdongColors2 = ['#ffffff', '#002df8', '#ff269d', '#ffe900', '#920061', '#10cd48', '#fa203c']
 const saekdongColors3 = ['#ffffff', '#1a3699', '#c81787', '#ffc428', '#843b97', '#0eab50', '#e71739']
 
+const NUM_STICKS = 30
+const STICK_WIDTH = 3
+const STICK_HEIGHT = 60
+
 /*
 const HalfCylinder = ({index, numCylinder}) => {
   //var geometry = new THREE.CylinderGeometry(100,100,150, 8, 1, false, 0, Math.PI);
@@ -22,11 +27,11 @@ const HalfCylinder = ({index, numCylinder}) => {
 // Or a default orthographic camera if Canvas.orthographic is true:
 // near: 0.1, far: 1000, position.z: 5
 
-const Stick = ({index, numSticks}) => {
+const Stick = ({index, numSticks, textures}) => {
   const stickRef = useRef()
   const material = useRef()
-  const width = 3
-  const height = 60
+  const width = STICK_WIDTH
+  const height = STICK_HEIGHT
 
   const totalSticksWidth = width * Math.sqrt(2) * numSticks
   //const color = saekdongColors2[index % saekdongColors.length]
@@ -57,7 +62,7 @@ const Stick = ({index, numSticks}) => {
     // }
     // stickRef.current.geometry.colorsNeedUpdate = true
 
-    stickRef.current.geometry.addAttribute("side", new THREE.Float32BufferAttribute([
+    stickRef.current.geometry.setAttribute("side", new THREE.Float32BufferAttribute([
       0, 0, 0, 0, 
       1, 1, 1, 1, 
       2, 2, 2, 2, 
@@ -65,8 +70,6 @@ const Stick = ({index, numSticks}) => {
       4, 4, 4, 4, 
       5, 5, 5, 5
     ], 1));
-
-
 
     stickRef.current.rotation.set(...rotation);
     //stickRef.current.material.color.set('green')
@@ -88,7 +91,7 @@ const Stick = ({index, numSticks}) => {
   return (
     <mesh ref={stickRef}>
       <boxBufferGeometry attach="geometry" args={[width, height, width] } />
-      <customMaterial ref={material} attach='material' />
+      <customMaterial ref={material} attach='material' index={index} numSticks={numSticks} textures={textures}/>
     </mesh>
   )
 }
@@ -96,24 +99,53 @@ const Stick = ({index, numSticks}) => {
 
 
 const Controls = () => {
+  const orbitRef = useRef()
+
   const {
     camera,
     gl: { domElement }
   } = useThree()
+
+  // Constructor
+  useEffect(() => {
+    //orbitRef.current.autoRotate = true
+  }, [])
+
+  useFrame((state) => orbitRef.current.update());
 
   // Default orthographic camera settings: near: 0.1, far: 1000, position.z: 5
   //camera.near = 0
   //camera.updateProjectionMatrix()
 
   return (
-    <orbitControls args={[camera, domElement]} />
+    <orbitControls ref={orbitRef} args={[camera, domElement]} 
+      maxAzimuthAngle={Math.PI / 4}
+      maxPolarAngle={Math.PI*5/8}
+      minAzimuthAngle={-Math.PI / 4}
+      minPolarAngle={Math.PI*3/8}/>
   )
 }
 
-const Scene = () => {
-  const numSticks = 30
+const Startup = () => {
+  const ref = useRef()
+  useFrame(() => (ref.current.material.opacity = lerp(ref.current.material.opacity, 0, 0.025)))
+  return (
+    <mesh ref={ref} position={[0, 0, 200]} scale={[100, 100, 1]}>
+      <planeBufferGeometry attach='geometry' />
+      <meshBasicMaterial attach='material' color='#ffffff' transparent />
+    </mesh>
+  )
+}
+
+const Sticks = () => {
+  const numSticks = NUM_STICKS
   const [sticks, setSticks] = useState([])
 
+  const loadedTextures = useTexture(['img/flavor_wheel.jpg', 'img/jumbotron.jpg'])
+  let [img1, img2] = loadedTextures.map(texture => ((texture.minFilter = THREE.LinearFilter), texture))
+  let textures = [img1, img2, img1, img2, img1, img2]
+
+  // Initializer
   useEffect(() => {
     for (let i = 0; i < numSticks; i++) {
       let newStick = {index:i}
@@ -121,6 +153,28 @@ const Scene = () => {
     }
   },[])
 
+  return (
+    <>
+      <ambientLight intensity={1} />
+      <pointLight intensity={0.25} position={[5, 0, 5]} />
+      <spotLight
+        castShadow
+        position={[-5, 2.5, 5]}
+        intensity={0.25}
+        penumbra={1}
+      />
+      <Controls />
+      {sticks.map(stick => {
+         return (
+             <Stick key={stick.index} index={stick.index} numSticks={numSticks} textures={textures}/>
+         )
+      })}
+      <Stick index={0} maxIndex={3}/>
+    </>
+  )
+}
+
+const Scene = () => {
   return (
     <>
       <Stats
@@ -134,21 +188,10 @@ const Scene = () => {
                 camera.near = -500
               }}>
       >
-        <ambientLight intensity={1} />
-        <pointLight intensity={0.25} position={[5, 0, 5]} />
-        <spotLight
-          castShadow
-          position={[-5, 2.5, 5]}
-          intensity={0.25}
-          penumbra={1}
-        />
-        <Controls />
-        {sticks.map(stick => {
-           return (
-               <Stick key={stick.index} index={stick.index} numSticks={numSticks}/>
-           )
-        })}
-        <Stick index={0} maxIndex={3}/>
+        <Suspense fallback={<Html center className='loading'> loading... </Html>}>
+          <Sticks />
+          <Startup />
+        </Suspense>
       </Canvas>
     </>
   )
