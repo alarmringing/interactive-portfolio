@@ -14,8 +14,8 @@ const saekdongColors = ['#ffffff', '#293985', '#b83280', '#f2d44a', '#67213d', '
 const saekdongColors2 = ['#ffffff', '#002df8', '#ff269d', '#ffe900', '#920061', '#10cd48', '#fa203c']
 const saekdongColors3 = ['#ffffff', '#1a3699', '#c81787', '#ffc428', '#843b97', '#0eab50', '#e71739']
 
-const NUM_STICKS = 30
-const STICK_WIDTH = 3
+const NUM_STICKS = 45
+const STICK_WIDTH = 2
 const STICK_HEIGHT = 60
 
 /*
@@ -34,17 +34,23 @@ const Stick = ({index, numSticks, textures}) => {
   const height = STICK_HEIGHT
 
   const totalSticksWidth = width * Math.sqrt(2) * numSticks
+
+  const rotateDelayRate = 0.0005;
+  let [timeUntilRotate, setTimeUntilRotate] = useState(-1)
   //const color = saekdongColors2[index % saekdongColors.length]
 
   const {gl} = useThree()
 
-  // TODO(testing): when 'R' is pressed rotate the cubes for testing.
+  const [destRotation, setDestRotation] = useState([0, Math.PI/4, 0])
   const OnKeyPress = (e) => {
+    // TODO(testing): when 'R' is pressed rotate the cubes for testing.
     if(e.code != 'KeyR') return
-    setRotation(rotation => [0, rotation[1] + Math.PI/4, 0])
+
+    setTimeUntilRotate(index * rotateDelayRate)
+    setDestRotation(destRotation => [0, destRotation[1] + Math.PI/4, 0])
+  
   }
 
-  const [rotation, setRotation] = useState([0, Math.PI/4, 0])
 
   // Constructor
   useEffect(() => {
@@ -71,16 +77,24 @@ const Stick = ({index, numSticks, textures}) => {
       5, 5, 5, 5
     ], 1));
 
-    stickRef.current.rotation.set(...rotation);
+    stickRef.current.rotation.set(...destRotation);
     //stickRef.current.material.color.set('green')
   }, [])
 
 
-  useFrame(() => {
+  useFrame(({clock}) => {
     //let destQutaernion = new THREE.Vector3(rotation[0], rotation[1], rotation[2])
-    let destQutaernion = new THREE.Quaternion();
-    destQutaernion.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), rotation[1]);
-    stickRef.current.quaternion.slerp( destQutaernion, 0.1 );
+    let destQuaternion = new THREE.Quaternion();
+    destQuaternion.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), destRotation[1]);
+
+    if(timeUntilRotate >= 0) {
+      setTimeUntilRotate(timeUntilRotate - clock.getDelta())
+    } else {
+      if (!stickRef.current.rotation.equals(destRotation)) {
+        stickRef.current.quaternion.slerp(destQuaternion, 0.1);
+      }
+    }
+    
 
   //   setRotation(rotation => [0, rotation[1] + 0.01, 0])
   //   stickRef.current.rotation.set(...rotation);
@@ -89,7 +103,7 @@ const Stick = ({index, numSticks, textures}) => {
 
 
   return (
-    <mesh ref={stickRef}>
+    <mesh ref={stickRef} receiveShadow>
       <boxBufferGeometry attach="geometry" args={[width, height, width] } />
       <customMaterial ref={material} attach='material' index={index} numSticks={numSticks} textures={textures}/>
     </mesh>
