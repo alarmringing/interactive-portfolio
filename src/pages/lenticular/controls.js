@@ -24,8 +24,8 @@ const Controls = () => {
   } = useThree()
 
   const onMouseMove = (e) => {
-    let mouseX = e.pageX / window.innerWidth
-    let mouseY = e.pageY / window.innerHeight 
+    let mouseX = THREE.MathUtils.clamp(e.pageX / window.innerWidth * 1.2 - 0.1, 0, 1) 
+    let mouseY = THREE.MathUtils.clamp(e.pageY / window.innerHeight * 1.2 - 0.1, 0, 1) 
 
     let rightAngle = MAX_AZIMUTH_ANGLE - (MAX_AZIMUTH_ANGLE - MIN_AZIMUTH_ANGLE) * mouseX
     let downAngle = MIN_POLAR_ANGLE + (MAX_POLAR_ANGLE - MIN_POLAR_ANGLE) * mouseY

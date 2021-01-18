@@ -2,12 +2,17 @@ import * as THREE from 'three'
 import React, { useRef, useEffect, useState } from "react"
 import { useFrame, useThree } from 'react-three-fiber'
 import { useTexture } from '@react-three/drei'
+import create from 'zustand'
 
-const NUM_STICKS = 45
-const STICK_WIDTH = 1
+const useStore = create(set => ({
+  selectedIndex: -1,
+}))
+
+const NUM_STICKS = 90
+const STICK_WIDTH = 0.5
 const STICK_HEIGHT = 30
 
-const Stick = ({index, numSticks, textures, destRotation}) => {
+const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}) => {
   const stickRef = useRef()
   const material = useRef()
   const width = STICK_WIDTH
@@ -43,7 +48,7 @@ const Stick = ({index, numSticks, textures, destRotation}) => {
   })
 
   return (
-    <mesh ref={stickRef} receiveShadow>
+    <mesh ref={stickRef} receiveShadow onClick={(e) => stickSelectedCallback(index)}>
       <boxBufferGeometry attach="geometry" args={[width, height, width] } />
       <customMaterial ref={material} attach='material' index={index} numSticks={numSticks} textures={textures}/>
     </mesh>
@@ -60,16 +65,19 @@ const Sticks = () => {
   let textures = [korean, english, japanese, chinese, 0, 0] 
 
   const {clock} = useThree()
+
   const [rotateStartIndex, setRotateStartIndex] = useState(0)
-  const [indexToRotate, setIndexToRotate] = useState(-1)
+  const [indMoveCount, setIndMoveCount] = useState(-1)
+
   const [timeElapsedSinceRotateStart, setTimeElapsedSinceRotateStart] = useState(-1)
-  const rotateDelayRate = 0.03
+  const [targetRotation, setTargetRotation] = useState([0, Math.PI/4, 0])
+  const rotateDelayRate = 0.02
   const rotationDelta = Math.PI/2
 
   // Initializer
   useEffect(() => {
     for (let i = 0; i < numSticks; i++) {
-      let newStick = {index:i, destRotation:[0, Math.PI/4, 0]}
+      let newStick = {index:i, destRotation:targetRotation}
       setSticks( sticks => [...sticks, newStick]);
     }
     document.addEventListener('keypress', OnKeyPress)
@@ -80,25 +88,47 @@ const Sticks = () => {
     // TODO(testing): when 'R' is pressed rotate the cubes for testing.
     if(e.code != 'KeyR') return
     clock.start()
-    setIndexToRotate(rotateStartIndex)
+
+    setRotateStartIndex(0)
+    setIndMoveCount(0)
+
+    setTargetRotation(prev => [prev[0], prev[1] + rotationDelta, prev[2]])
+  }
+
+  const stickSelectedCallback = (index) => {
+    clock.start()
+
+    setRotateStartIndex(index)
+    setIndMoveCount(0)
+
+    setTargetRotation(prev => [prev[0], prev[1] + rotationDelta, prev[2]])
   }
 
   useFrame(() => {
     if (!clock.running) return
     let newSticks = [...sticks]
 
+    let i = indMoveCount;
     // Update the stick rotations when necessary.
-    for (let i = indexToRotate; i < numSticks; i++) {
-      if (i*rotateDelayRate < clock.getElapsedTime()) {
-        newSticks[i].destRotation[1] += rotationDelta
-        setIndexToRotate(i+1)
-      } else break
+    while(i * rotateDelayRate < clock.getElapsedTime()) {
+
+      let rightInd = (rotateStartIndex + i) % numSticks;
+      newSticks[rightInd].destRotation = targetRotation
+
+      let leftInd = rotateStartIndex - i;
+      if (leftInd < 0) leftInd = numSticks + leftInd;
+      newSticks[leftInd].destRotation = targetRotation;
+
+      console.log("LeftInd: ", leftInd, "RightInd: ", rightInd)
+      i += 1
     }
+
+    setIndMoveCount(i)
     setSticks(newSticks)
-    if (indexToRotate == numSticks) {
-      clock.stop()
-      setIndexToRotate(rotateStartIndex)
-    }
+
+    // End condition
+    if (indMoveCount > numSticks/2) clock.stop()
+    
   })
 
   return (
@@ -118,7 +148,9 @@ const Sticks = () => {
                      index={stick.index} 
                      numSticks={numSticks} 
                      destRotation={stick.destRotation} 
-                     textures={textures} />
+                     textures={textures} 
+                     stickSelectedCallback={stickSelectedCallback}
+              />
          )
       })}
     </>
