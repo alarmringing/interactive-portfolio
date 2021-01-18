@@ -26,12 +26,12 @@ class CustomMaterial extends ShaderMaterial {
 					vec4 texelColor;
 
 					vec2 uvVal = vec2((1./numSticks)*index + (vUv.x/numSticks), vUv.y);
-					if (boxSide == 0.) texelColor = texture2D( textures[0], uvVal );
-					else if (boxSide == 1.) texelColor = texture2D( textures[1], uvVal );
-					else if (boxSide == 2.) texelColor = texture2D( textures[2], uvVal );
-					else if (boxSide == 3.) texelColor = texture2D( textures[3], uvVal );
-					else if (boxSide == 4.) texelColor = texture2D( textures[4], uvVal );
-					else if (boxSide == 5.) texelColor = texture2D( textures[5], uvVal );
+					if (boxSide == 0.) texelColor = texture2D( textures[3], uvVal ); // SIDE D
+					else if (boxSide == 1.) texelColor = texture2D( textures[1], uvVal ); // SIDE B
+					else if (boxSide == 2.) texelColor = vec4(1., 1, 1, 1.); //texture2D( textures[2], uvVal ); // TOP
+					else if (boxSide == 3.) texelColor = vec4(1., 1, 1, 1.); //texture2D( textures[3], uvVal ); // BOTTOM
+					else if (boxSide == 4.) texelColor = texture2D( textures[0], uvVal ); // SIDE A
+					else if (boxSide == 5.) texelColor = texture2D( textures[2], uvVal ); // SIDE C
 
 					gl_FragColor = texelColor;
 				}
