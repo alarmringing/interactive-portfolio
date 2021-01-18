@@ -64,12 +64,12 @@ const Sticks = () => {
   const [indexToRotate, setIndexToRotate] = useState(-1)
   const [timeElapsedSinceRotateStart, setTimeElapsedSinceRotateStart] = useState(-1)
   const rotateDelayRate = 0.03
-  const rotationDelta = Math.PI/4
+  const rotationDelta = Math.PI/2
 
   // Initializer
   useEffect(() => {
     for (let i = 0; i < numSticks; i++) {
-      let newStick = {index:i, destRotation:[0, 0, 0]}
+      let newStick = {index:i, destRotation:[0, Math.PI/4, 0]}
       setSticks( sticks => [...sticks, newStick]);
     }
     document.addEventListener('keypress', OnKeyPress)
