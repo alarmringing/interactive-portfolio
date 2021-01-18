@@ -54,10 +54,10 @@ const Sticks = () => {
   const numSticks = NUM_STICKS
   const [sticks, setSticks] = useState([])
 
-  const loadedTextures = useTexture(['img/flavor_wheel.jpg', 'img/jumbotron.jpg'])
-  let [img1, img2] = loadedTextures.map(texture => ((texture.minFilter = THREE.LinearFilter), texture))
+  const loadedTextures = useTexture(['img/korean.jpg', 'img/english.jpg', 'img/chinese.jpg', 'img/japanese.jpg'])
+  let [korean, english, japanese, chinese] = loadedTextures.map(texture => ((texture.minFilter = THREE.LinearFilter), texture))
   // First four or the sides of the stick. Last two are top and bottom.
-  let textures = [img1, img2, img1, img2, 0, 0] 
+  let textures = [korean, english, japanese, chinese, 0, 0] 
 
   const {clock} = useThree()
   const [rotateStartIndex, setRotateStartIndex] = useState(0)
