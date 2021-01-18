@@ -15,8 +15,8 @@ const saekdongColors2 = ['#ffffff', '#002df8', '#ff269d', '#ffe900', '#920061', 
 const saekdongColors3 = ['#ffffff', '#1a3699', '#c81787', '#ffc428', '#843b97', '#0eab50', '#e71739']
 
 const NUM_STICKS = 45
-const STICK_WIDTH = 2
-const STICK_HEIGHT = 60
+const STICK_WIDTH = 1
+const STICK_HEIGHT = 30
 
 /*
 const HalfCylinder = ({index, numCylinder}) => {
@@ -27,7 +27,7 @@ const HalfCylinder = ({index, numCylinder}) => {
 // Or a default orthographic camera if Canvas.orthographic is true:
 // near: 0.1, far: 1000, position.z: 5
 
-const Stick = ({index, numSticks, textures}) => {
+const Stick = ({index, numSticks, textures, destRotation}) => {
   const stickRef = useRef()
   const material = useRef()
   const width = STICK_WIDTH
@@ -35,27 +35,10 @@ const Stick = ({index, numSticks, textures}) => {
 
   const totalSticksWidth = width * Math.sqrt(2) * numSticks
 
-  const rotateDelayRate = 0.0005;
-  let [timeUntilRotate, setTimeUntilRotate] = useState(-1)
-  //const color = saekdongColors2[index % saekdongColors.length]
-
   const {gl} = useThree()
-
-  const [destRotation, setDestRotation] = useState([0, Math.PI/4, 0])
-  const OnKeyPress = (e) => {
-    // TODO(testing): when 'R' is pressed rotate the cubes for testing.
-    if(e.code != 'KeyR') return
-
-    setTimeUntilRotate(index * rotateDelayRate)
-    setDestRotation(destRotation => [0, destRotation[1] + Math.PI/4, 0])
-  
-  }
-
 
   // Constructor
   useEffect(() => {
-
-    document.addEventListener('keypress', OnKeyPress)
 
     let positionX = -(totalSticksWidth/2) + index * width * Math.sqrt(2)
     stickRef.current.position.set(positionX, 0, 0)
@@ -82,11 +65,15 @@ const Stick = ({index, numSticks, textures}) => {
   }, [])
 
 
-  useFrame(({clock}) => {
-    //let destQutaernion = new THREE.Vector3(rotation[0], rotation[1], rotation[2])
+  useFrame(() => {
     let destQuaternion = new THREE.Quaternion();
     destQuaternion.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), destRotation[1]);
 
+    if (!stickRef.current.rotation.equals(destRotation)) {
+        stickRef.current.quaternion.slerp(destQuaternion, 0.1);
+    }
+
+/*
     if(timeUntilRotate >= 0) {
       setTimeUntilRotate(timeUntilRotate - clock.getDelta())
     } else {
@@ -94,7 +81,7 @@ const Stick = ({index, numSticks, textures}) => {
         stickRef.current.quaternion.slerp(destQuaternion, 0.1);
       }
     }
-    
+    */
 
   //   setRotation(rotation => [0, rotation[1] + 0.01, 0])
   //   stickRef.current.rotation.set(...rotation);
@@ -113,30 +100,123 @@ const Stick = ({index, numSticks, textures}) => {
 
 
 const Controls = () => {
-  const orbitRef = useRef()
+  const MIN_POLAR_ANGLE = Math.PI*2.5/8
+  const MAX_POLAR_ANGLE = Math.PI*5.5/8
+  const MIN_AZIMUTH_ANGLE = -Math.PI / 4
+  const MAX_AZIMUTH_ANGLE = Math.PI / 4
+
+  const dampingFactor = 0.05
+  const zoom = 40
+  const fov = 380
+
+  const target = new THREE.Vector3(0, 0, 0)
+  const [spherical,] = useState(new THREE.Spherical());
+  const [sphericalDelta,] = useState(new THREE.Spherical());
 
   const {
     camera,
     gl: { domElement }
   } = useThree()
 
+  const onMouseMove = (e) => {
+    let mouseX = e.pageX / window.innerWidth
+    let mouseY = e.pageY / window.innerHeight 
+
+    let rightAngle = MAX_AZIMUTH_ANGLE - (MAX_AZIMUTH_ANGLE - MIN_AZIMUTH_ANGLE) * mouseX
+    let downAngle = MIN_POLAR_ANGLE + (MAX_POLAR_ANGLE - MIN_POLAR_ANGLE) * mouseY
+
+    spherical.theta = rightAngle
+    spherical.phi = downAngle
+    spherical.makeSafe();
+  }
+
   // Constructor
   useEffect(() => {
-    //orbitRef.current.autoRotate = true
+    document.addEventListener('mousemove', onMouseMove)
+
+    let initialPhi = MIN_POLAR_ANGLE + (MAX_POLAR_ANGLE - MIN_POLAR_ANGLE) * 0.5
+    let initialTheta = MIN_AZIMUTH_ANGLE + (MAX_AZIMUTH_ANGLE - MIN_AZIMUTH_ANGLE) * 0.5
+    spherical.set(zoom, initialPhi, initialTheta)
+
+    // Camera setting
+    camera.zoom = zoom
+    camera.fov = fov
+
   }, [])
 
-  useFrame((state) => orbitRef.current.update());
+  const orbitCamera = () => {
+
+    /*
+    let newCameraPos = new THREE.Vector3()
+
+    newCameraPos.setFromSpherical(spherical);
+    camera.position.copy(newCameraPos)
+    camera.updateProjectionMatrix()
+
+    */
+
+    // Setup
+    let offset = new THREE.Vector3();
+
+    // so camera.up is the orbit axis
+    let quat = new THREE.Quaternion().setFromUnitVectors( camera.up, new THREE.Vector3( 0, 1, 0 ) );
+    let quatInverse = quat.clone().invert();
+
+    let position = camera.position;
+    offset.copy(position).sub(target);
+
+    // rotate offset to "y-axis-is-up" space
+    offset.applyQuaternion( quat );
+
+    // angle from z-axis around y-axis
+    //spherical.setFromVector3(offset);
+
+    // Rotate
+    //spherical.theta += sphericalDelta.theta * dampingFactor;
+    //spherical.phi += sphericalDelta.phi * dampingFactor;
+    
+    // Zoom
+    //spherical.radius = scale;
+
+    // Set
+    offset.setFromSpherical(spherical);
+    offset.applyQuaternion(quatInverse); // rotate offset back to "camera-up-vector-is-up" space
+    position.copy(target).add(offset);
+    camera.lookAt(target);
+    camera.zoom = 1
+    // Damping
+    //sphericalDelta.theta *= ( 1 - dampingFactor );
+    //sphericalDelta.phi *= ( 1 - dampingFactor );
+
+    /*
+
+    // update condition is:
+    // min(camera displacement, camera rotation in radians)^2 > EPS
+    // using small-angle approximation cos(x/2) = 1 - x^2 / 8
+
+    if (lastPosition.distanceToSquared( scope.object.position ) > EPS ||
+      8 * ( 1 - lastQuaternion.dot( scope.object.quaternion ) ) > EPS ) {
+
+      scope.dispatchEvent( changeEvent );
+
+      lastPosition.copy( scope.object.position );
+      lastQuaternion.copy( scope.object.quaternion );
+      zoomChanged = false;
+
+      return true;
+
+    }
+    */
+  }
+
+  useFrame((state) => {
+    orbitCamera()
+  })
 
   // Default orthographic camera settings: near: 0.1, far: 1000, position.z: 5
-  //camera.near = 0
-  //camera.updateProjectionMatrix()
 
   return (
-    <orbitControls ref={orbitRef} args={[camera, domElement]} 
-      maxAzimuthAngle={Math.PI / 4}
-      maxPolarAngle={Math.PI*5/8}
-      minAzimuthAngle={-Math.PI / 4}
-      minPolarAngle={Math.PI*3/8}/>
+    <pointLight intensity={0.25} position={[5, 0, 5]} />
   )
 }
 
@@ -159,13 +239,47 @@ const Sticks = () => {
   let [img1, img2] = loadedTextures.map(texture => ((texture.minFilter = THREE.LinearFilter), texture))
   let textures = [img1, img2, img1, img2, img1, img2]
 
+  const [rotateStartIndex, setRotateStartIndex] = useState(0)
+  const [indexToRotate, setIndexToRotate] = useState(-1)
+  const [timeElapsedSinceRotateStart, setTimeElapsedSinceRotateStart] = useState(-1)
+  const rotateDelayRate = 0.0005
+  const rotationDelta = Math.PI/4
+
   // Initializer
   useEffect(() => {
     for (let i = 0; i < numSticks; i++) {
-      let newStick = {index:i}
+      let newStick = {index:i, destRotation:[0, 0, 0]}
       setSticks( sticks => [...sticks, newStick]);
     }
+
+    document.addEventListener('keypress', OnKeyPress)
   },[])
+
+  const OnKeyPress = (e) => {
+    // TODO(testing): when 'R' is pressed rotate the cubes for testing.
+    if(e.code != 'KeyR') return
+    setTimeElapsedSinceRotateStart(0)
+    setIndexToRotate(rotateStartIndex)
+  }
+
+  useFrame(({clock}) => {
+    if (timeElapsedSinceRotateStart < 0) return
+    setTimeElapsedSinceRotateStart(prev => prev + clock.getDelta())
+
+    let newSticks = [...sticks]
+
+    for (let i = indexToRotate; i < numSticks; i++) {
+      if (i*rotateDelayRate < timeElapsedSinceRotateStart) {
+        newSticks[i].destRotation[1] += rotationDelta
+        setIndexToRotate(i+1)
+      } else break
+    }
+    setSticks(newSticks)
+    if (indexToRotate == numSticks) {
+      setTimeElapsedSinceRotateStart(-1)
+      setIndexToRotate(rotateStartIndex)
+    }
+  })
 
   return (
     <>
@@ -178,12 +292,16 @@ const Sticks = () => {
         penumbra={1}
       />
       <Controls />
-      {sticks.map(stick => {
+      {sticks.map((stick) => {
          return (
-             <Stick key={stick.index} index={stick.index} numSticks={numSticks} textures={textures}/>
+             <Stick  
+                     key={stick.index} 
+                     index={stick.index} 
+                     numSticks={numSticks} 
+                     destRotation={stick.destRotation} 
+                     textures={textures} />
          )
       })}
-      <Stick index={0} maxIndex={3}/>
     </>
   )
 }
@@ -195,11 +313,11 @@ const Scene = () => {
         showPanel={0} // Start-up panel (default=0)
         className="stats" // Optional className to add to the stats container dom element
       />
-      <Canvas style={{height: '100vh', width: '100vw'}} orthographic        
+      <Canvas style={{height: '100vh', width: '100vw'}}         
               onCreated={({ gl, camera }) => {
                 gl.setClearColor('#030303')
-                camera.far = 500
-                camera.near = -500
+                //camera.far = 500
+                //camera.near = -500
               }}>
       >
         <Suspense fallback={<Html center className='loading'> loading... </Html>}>
@@ -210,81 +328,5 @@ const Scene = () => {
     </>
   )
 }
-
-/*
-const Rock = () => {
-  const rockRef = useRef();
-
-  const {gl} = useThree()
-  const [toggle, setToggle] = useState(true)
-  const [hover, setHover] = useState(false)
-
-  const onHover = () => { setHover(!hover) }
-
-  useLayoutEffect(() => {
-    if (hover) {
-      gl.domElement.classList.add("onHover")
-      return
-    }
-    gl.domElement.classList.remove("onHover")
-  }, [hover, gl])
-
-  useFrame(() => {
-    if (toggle && rockRef.current) {
-      const { advance } = getState();
-      const rotations = advance("rock", "rotation", state => {
-        const [x, y, z] = state.rock.rotation
-        return [x + 0.01, y + 0.01, z + 0.01]
-      })
-      rockRef.current.rotation.set(...rotations);
-    }
-  })
-  useEffect(() => {
-    const {setInitialState} = getState();
-    setInitialState("rock", {
-      rotation: [0, 0, 0],
-    })
-  }, [])
-  return (
-    <mesh ref={rockRef} castShadow position={[0, 0.5, 0]}
-          scale={hover ? [1.25, 1.25, 1.25] : [1, 1, 1]}
-          onPointerDown={() => {setToggle(!toggle)}}
-          onPointerOver={onHover} onPointerOut={onHover}>
-      <dodecahedronGeometry attach="geometry" args={[1, 0]} />
-      <meshPhysicalMaterial attach="material" color="pink" />
-    </mesh>
-  )
-}
-
-const Ground = () => {
-  return (
-    <mesh receiveShadow position={[0, -1, 0]} rotation={[-Math.PI/2, 0, 0]}>
-      <planeBufferGeometry attach="geometry" args={[100, 100, 100]} />
-      <meshPhysicalMaterial attach="material" color="brown" />
-    </mesh>
-  )
-}
-
-const ThreeFiberPractice = () => {
-  return (
-    <>
-      ThreeFiberPractice starting.
-      <Canvas shadowMap>
-        <ambientLight intensity={0.75} />
-        <pointLight intensity={0.25} position={[5, 0, 5]} />
-        <spotLight
-          castShadow
-          position={[-5, 2.5, 5]}
-          intensity={0.25}
-          penumbra={1}
-        />
-        <Rock />
-        <Ground />
-      </Canvas>
-    </>
-  )
-}
-
-*/
 
 export default Scene
