@@ -40,12 +40,12 @@ const Scene = () => {
         showPanel={0} // Start-up panel (default=0)
         className="stats" // Optional className to add to the stats container dom element
       />
-      <Canvas style={{height: '100vh', width: '100vw'}}       
+      <Canvas style={{height: '100vh', width: '100vw'}} orthographic   
               onCreated={({ gl, camera }) => {
                 gl.setClearColor('#030303')
                 // Default orthographicCamera settings. near: 0.1, far: 1000, position.z: 5
-                //camera.far = 500
-                //camera.near = -500
+                camera.far = 500
+                camera.near = -500
               }}>
       >
         <Suspense fallback={<Html center className='loading'> loading... </Html>}>

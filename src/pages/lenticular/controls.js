@@ -9,7 +9,9 @@ const Controls = () => {
   const MAX_AZIMUTH_ANGLE = Math.PI / 4
 
   const dampingFactor = 0.05
-  const zoom = 40
+
+  const radius = 70 // Around 70 for projectionCamera
+  const zoom = 25 // Around 25 for orthographicCamera
   const fov = 380
 
   const target = new THREE.Vector3(0, 0, 0)
@@ -39,7 +41,7 @@ const Controls = () => {
 
     let initialPhi = MIN_POLAR_ANGLE + (MAX_POLAR_ANGLE - MIN_POLAR_ANGLE) * 0.5
     let initialTheta = MIN_AZIMUTH_ANGLE + (MAX_AZIMUTH_ANGLE - MIN_AZIMUTH_ANGLE) * 0.5
-    spherical.set(zoom, initialPhi, initialTheta)
+    spherical.set(radius, initialPhi, initialTheta)
 
     // Camera setting
     camera.zoom = zoom
@@ -47,7 +49,7 @@ const Controls = () => {
 
   }, [])
 
-  const orbitCamera = () => {
+  useFrame((state) => {
 
     /*
     let newCameraPos = new THREE.Vector3()
@@ -86,7 +88,9 @@ const Controls = () => {
     offset.applyQuaternion(quatInverse); // rotate offset back to "camera-up-vector-is-up" space
     position.copy(target).add(offset);
     camera.lookAt(target);
-    camera.zoom = 1
+    camera.zoom = zoom
+    camera.updateProjectionMatrix()
+
     // Damping
     //sphericalDelta.theta *= ( 1 - dampingFactor );
     //sphericalDelta.phi *= ( 1 - dampingFactor );
@@ -110,10 +114,6 @@ const Controls = () => {
 
     }
     */
-  }
-
-  useFrame((state) => {
-    orbitCamera()
   })
 
   // Default orthographic camera settings: near: 0.1, far: 1000, position.z: 5
