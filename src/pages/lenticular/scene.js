@@ -18,12 +18,6 @@ const NUM_STICKS = 45
 const STICK_WIDTH = 1
 const STICK_HEIGHT = 30
 
-/*
-const HalfCylinder = ({index, numCylinder}) => {
-  //var geometry = new THREE.CylinderGeometry(100,100,150, 8, 1, false, 0, Math.PI);
-}
-*/
-
 // Or a default orthographic camera if Canvas.orthographic is true:
 // near: 0.1, far: 1000, position.z: 5
 
@@ -237,12 +231,14 @@ const Sticks = () => {
 
   const loadedTextures = useTexture(['img/flavor_wheel.jpg', 'img/jumbotron.jpg'])
   let [img1, img2] = loadedTextures.map(texture => ((texture.minFilter = THREE.LinearFilter), texture))
-  let textures = [img1, img2, img1, img2, img1, img2]
+  // First four or the sides of the stick. Last two are top and bottom.
+  let textures = [img1, img2, img1, img2, 0, 0] 
 
+  const {clock} = useThree()
   const [rotateStartIndex, setRotateStartIndex] = useState(0)
   const [indexToRotate, setIndexToRotate] = useState(-1)
   const [timeElapsedSinceRotateStart, setTimeElapsedSinceRotateStart] = useState(-1)
-  const rotateDelayRate = 0.0005
+  const rotateDelayRate = 0.03
   const rotationDelta = Math.PI/4
 
   // Initializer
@@ -251,32 +247,31 @@ const Sticks = () => {
       let newStick = {index:i, destRotation:[0, 0, 0]}
       setSticks( sticks => [...sticks, newStick]);
     }
-
     document.addEventListener('keypress', OnKeyPress)
+    clock.stop()
   },[])
 
   const OnKeyPress = (e) => {
     // TODO(testing): when 'R' is pressed rotate the cubes for testing.
     if(e.code != 'KeyR') return
-    setTimeElapsedSinceRotateStart(0)
+    clock.start()
     setIndexToRotate(rotateStartIndex)
   }
 
-  useFrame(({clock}) => {
-    if (timeElapsedSinceRotateStart < 0) return
-    setTimeElapsedSinceRotateStart(prev => prev + clock.getDelta())
-
+  useFrame(() => {
+    if (!clock.running) return
     let newSticks = [...sticks]
 
+    // Update the stick rotations when necessary.
     for (let i = indexToRotate; i < numSticks; i++) {
-      if (i*rotateDelayRate < timeElapsedSinceRotateStart) {
+      if (i*rotateDelayRate < clock.getElapsedTime()) {
         newSticks[i].destRotation[1] += rotationDelta
         setIndexToRotate(i+1)
       } else break
     }
     setSticks(newSticks)
     if (indexToRotate == numSticks) {
-      setTimeElapsedSinceRotateStart(-1)
+      clock.stop()
       setIndexToRotate(rotateStartIndex)
     }
   })
@@ -313,7 +308,7 @@ const Scene = () => {
         showPanel={0} // Start-up panel (default=0)
         className="stats" // Optional className to add to the stats container dom element
       />
-      <Canvas style={{height: '100vh', width: '100vw'}}         
+      <Canvas style={{height: '100vh', width: '100vw'}}       
               onCreated={({ gl, camera }) => {
                 gl.setClearColor('#030303')
                 //camera.far = 500
