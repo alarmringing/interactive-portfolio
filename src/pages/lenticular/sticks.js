@@ -5,20 +5,24 @@ import { useTexture } from '@react-three/drei'
 import create from 'zustand'
 
 const useStore = create(set => ({
-  selectedIndex: -1,
+  lastClickedIndex: 0,
+  setClickedIndex: (val) => set({ lastClickedIndex: val })
 }))
 
 const NUM_STICKS = 90
 const STICK_WIDTH = 0.5
 const STICK_HEIGHT = 30
+const ROTATION_DELTA = Math.PI/2
 
 const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}) => {
+  const lastClickedIndex = useStore(state => state.lastClickedIndex)
   const stickRef = useRef()
   const material = useRef()
   const width = STICK_WIDTH
   const height = STICK_HEIGHT
 
   const totalSticksWidth = width * Math.sqrt(2) * numSticks
+  const zOffsetModifier = 2
 
   // Constructor
   useEffect(() => {
@@ -43,7 +47,16 @@ const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}
     destQuaternion.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), destRotation[1]);
 
     if (!stickRef.current.rotation.equals(destRotation)) {
+        // Lerp rotation
         stickRef.current.quaternion.slerp(destQuaternion, 0.1);
+
+        // A z-direction 'pop' effect
+        const distToGoal = destRotation[1] - stickRef.current.rotation.y
+        if (distToGoal) {
+          const zOffset = Math.sin(distToGoal * (Math.PI / ROTATION_DELTA)) * zOffsetModifier
+          const distToSelectedIndex = Math.abs(lastClickedIndex - index)
+          stickRef.current.position.z = zOffset * (5 / (Math.pow(distToSelectedIndex, 0.3) + 5))
+        }
     }
   })
 
@@ -55,7 +68,11 @@ const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}
   )
 }
 
+
+
 const Sticks = () => {
+  const [lastClickedIndex, setClickedIndex] = useStore(state => [state.lastClickedIndex, state.setClickedIndex])
+
   const numSticks = NUM_STICKS
   const [sticks, setSticks] = useState([])
 
@@ -66,13 +83,11 @@ const Sticks = () => {
 
   const {clock} = useThree()
 
-  const [rotateStartIndex, setRotateStartIndex] = useState(0)
   const [indMoveCount, setIndMoveCount] = useState(-1)
 
   const [timeElapsedSinceRotateStart, setTimeElapsedSinceRotateStart] = useState(-1)
   const [targetRotation, setTargetRotation] = useState([0, Math.PI/4, 0])
-  const rotateDelayRate = 0.02
-  const rotationDelta = Math.PI/2
+  const rotateDelayRate = 0.01
 
   // Initializer
   useEffect(() => {
@@ -80,28 +95,16 @@ const Sticks = () => {
       let newStick = {index:i, destRotation:targetRotation}
       setSticks( sticks => [...sticks, newStick]);
     }
-    document.addEventListener('keypress', OnKeyPress)
     clock.stop()
   },[])
-
-  const OnKeyPress = (e) => {
-    // TODO(testing): when 'R' is pressed rotate the cubes for testing.
-    if(e.code != 'KeyR') return
-    clock.start()
-
-    setRotateStartIndex(0)
-    setIndMoveCount(0)
-
-    setTargetRotation(prev => [prev[0], prev[1] + rotationDelta, prev[2]])
-  }
 
   const stickSelectedCallback = (index) => {
     clock.start()
 
-    setRotateStartIndex(index)
     setIndMoveCount(0)
+    setClickedIndex(index)
 
-    setTargetRotation(prev => [prev[0], prev[1] + rotationDelta, prev[2]])
+    setTargetRotation(prev => [prev[0], prev[1] + ROTATION_DELTA, prev[2]])
   }
 
   useFrame(() => {
@@ -110,12 +113,12 @@ const Sticks = () => {
 
     let i = indMoveCount;
     // Update the stick rotations when necessary.
-    while(i * rotateDelayRate < clock.getElapsedTime()) {
+    while(Math.pow(i * rotateDelayRate, 0.7) < clock.getElapsedTime()) {
 
-      let rightInd = (rotateStartIndex + i) % numSticks;
+      let rightInd = (lastClickedIndex + i) % numSticks;
       newSticks[rightInd].destRotation = targetRotation
 
-      let leftInd = rotateStartIndex - i;
+      let leftInd = lastClickedIndex - i;
       if (leftInd < 0) leftInd = numSticks + leftInd;
       newSticks[leftInd].destRotation = targetRotation;
 
