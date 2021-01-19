@@ -50,16 +50,6 @@ const Controls = () => {
   }, [])
 
   useFrame((state) => {
-
-    /*
-    let newCameraPos = new THREE.Vector3()
-
-    newCameraPos.setFromSpherical(spherical);
-    camera.position.copy(newCameraPos)
-    camera.updateProjectionMatrix()
-
-    */
-
     // Setup
     let offset = new THREE.Vector3();
 
@@ -73,47 +63,17 @@ const Controls = () => {
     // rotate offset to "y-axis-is-up" space
     offset.applyQuaternion( quat );
 
-    // angle from z-axis around y-axis
-    //spherical.setFromVector3(offset);
-
-    // Rotate
-    //spherical.theta += sphericalDelta.theta * dampingFactor;
-    //spherical.phi += sphericalDelta.phi * dampingFactor;
-    
-    // Zoom
-    //spherical.radius = scale;
-
     // Set
     offset.setFromSpherical(spherical);
     offset.applyQuaternion(quatInverse); // rotate offset back to "camera-up-vector-is-up" space
-    position.copy(target).add(offset);
+
+    let destination = new THREE.Vector3()
+    destination.copy(target).add(offset);
+
+    camera.position.lerp(destination, 0.125)
     camera.lookAt(target);
     camera.zoom = zoom
     camera.updateProjectionMatrix()
-
-    // Damping
-    //sphericalDelta.theta *= ( 1 - dampingFactor );
-    //sphericalDelta.phi *= ( 1 - dampingFactor );
-
-    /*
-
-    // update condition is:
-    // min(camera displacement, camera rotation in radians)^2 > EPS
-    // using small-angle approximation cos(x/2) = 1 - x^2 / 8
-
-    if (lastPosition.distanceToSquared( scope.object.position ) > EPS ||
-      8 * ( 1 - lastQuaternion.dot( scope.object.quaternion ) ) > EPS ) {
-
-      scope.dispatchEvent( changeEvent );
-
-      lastPosition.copy( scope.object.position );
-      lastQuaternion.copy( scope.object.quaternion );
-      zoomChanged = false;
-
-      return true;
-
-    }
-    */
   })
 
   // Default orthographic camera settings: near: 0.1, far: 1000, position.z: 5
