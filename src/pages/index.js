@@ -3,7 +3,7 @@ import React from "react"
 //import CyberpunkPractice from './cyberpunk/cyberpunk-practice.js'
 //import Scene from './kinetic-typography/basic-intro.js'
 //import Scene from './text-physics/scene.js'
-import Lenticular from './lenticular/scene.js'
+import Lenticular from './lenticular/lenticular.js'
 
 //import './rock-tutorial/threepractice.scss'
 //import './cyberpunk/cyberpunk.css'

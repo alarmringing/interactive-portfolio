@@ -14,6 +14,8 @@
 - In the kinetic-typography example, torus looks weird but this seems to be a fault of its geometry implementation itself, not the text texture.
 - Cannon js is the physics library we are using. 
 - Font loader (for font geometry) needs a .json font library, which can be generated [here](https://gero3.github.io/facetype.js/). Only .ttf format font files work.
+- Scrolling animations are done with GSAP animation scrollTrigger. Check out the tutorial [here](https://blog.logrocket.com/how-to-use-the-gsap-scrolltrigger-plugin-in-react/).
+- Callback functions like onMouseMove cannot access the most recent react state, as it can only see the very initial state when the callback was first assigned. This is why I have mousePos and lastMousePos
 
 
 # Legacy notes from Gatsby + Netlify CMS Starter

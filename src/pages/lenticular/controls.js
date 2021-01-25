@@ -2,6 +2,8 @@ import * as THREE from 'three'
 import React, { useEffect, useState } from "react"
 import { useFrame, useThree } from 'react-three-fiber'
 
+import useStore from './store.js'
+
 const Controls = () => {
   const MIN_POLAR_ANGLE = Math.PI*2.5/8
   const MAX_POLAR_ANGLE = Math.PI*5.5/8
@@ -18,30 +20,27 @@ const Controls = () => {
   const [spherical,] = useState(new THREE.Spherical());
   const [sphericalDelta,] = useState(new THREE.Spherical());
 
+  const lenticularTweenProgress = useStore(state => state.lenticularTweenProgress)
+  const [mousePos, setMousePos] = useState({x:0, y:0})
+  const [lastIntroMousePos, setLastIntroMousePos] = useState({x:0, y:0})
+
   const {
     camera,
     gl: { domElement }
   } = useThree()
 
-  const onMouseMove = (e) => {
-    let mouseX = THREE.MathUtils.clamp(e.pageX / window.innerWidth * 1.2 - 0.1, 0, 1) 
-    let mouseY = THREE.MathUtils.clamp(e.pageY / window.innerHeight * 1.2 - 0.1, 0, 1) 
+  const rightAngle = (interp) => {
+    return MAX_AZIMUTH_ANGLE - (MAX_AZIMUTH_ANGLE - MIN_AZIMUTH_ANGLE) * interp
+  }
 
-    let rightAngle = MAX_AZIMUTH_ANGLE - (MAX_AZIMUTH_ANGLE - MIN_AZIMUTH_ANGLE) * mouseX
-    let downAngle = MIN_POLAR_ANGLE + (MAX_POLAR_ANGLE - MIN_POLAR_ANGLE) * mouseY
-
-    spherical.theta = rightAngle
-    spherical.phi = downAngle
-    spherical.makeSafe();
+  const downAngle = (interp) => {
+    return MIN_POLAR_ANGLE + (MAX_POLAR_ANGLE - MIN_POLAR_ANGLE) * interp
   }
 
   // Constructor
   useEffect(() => {
     document.addEventListener('mousemove', onMouseMove)
-
-    let initialPhi = MIN_POLAR_ANGLE + (MAX_POLAR_ANGLE - MIN_POLAR_ANGLE) * 0.5
-    let initialTheta = MIN_AZIMUTH_ANGLE + (MAX_AZIMUTH_ANGLE - MIN_AZIMUTH_ANGLE) * 0.5
-    spherical.set(radius, initialPhi, initialTheta)
+    spherical.set(radius, rightAngle(0.5), downAngle(0.5))
 
     // Camera setting
     camera.zoom = zoom
@@ -49,7 +48,37 @@ const Controls = () => {
 
   }, [])
 
+  const onMouseMove = (e) => {
+    let mouseX = THREE.MathUtils.clamp(e.pageX / window.innerWidth * 1.2 - 0.1, 0, 1) 
+    let mouseY = THREE.MathUtils.clamp(e.pageY / window.innerHeight * 1.2 - 0.1, 0, 1) 
+    setMousePos({x:mouseX, y:mouseY})
+    console.log("Setting last mouse, lenticularTweenProgress is ", lenticularTweenProgress)
+
+    spherical.theta = rightAngle(mouseX)
+    spherical.phi = downAngle(mouseY)
+    spherical.makeSafe();
+  }
+
+  const setForcedSpherical = () => {
+
+    const shouldForceRotateToRightSide = lastIntroMousePos.x > 0.5
+    //let rightAngleAmt = shouldShowLeft ? lenticularTweenProgress : (1 - lenticularTweenProgress)
+    let rightAngleAmt = THREE.MathUtils.lerp(lastIntroMousePos.x, shouldForceRotateToRightSide, lenticularTweenProgress)
+    let downAngleAmt = THREE.MathUtils.lerp(lastIntroMousePos.y, 0.5, lenticularTweenProgress)
+
+    spherical.theta = rightAngle(rightAngleAmt)
+    spherical.phi = downAngle(downAngleAmt)
+    spherical.makeSafe();
+  }
+
   useFrame((state) => {
+    // Only update last mouse position when we aren't force updating controls.
+    if (lenticularTweenProgress === 0) {
+      setLastIntroMousePos({x:mousePos.x, y:mousePos.y})
+    }
+    
+    if (lenticularTweenProgress > 0) setForcedSpherical() 
+
     // Setup
     let offset = new THREE.Vector3();
 

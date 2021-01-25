@@ -2,12 +2,8 @@ import * as THREE from 'three'
 import React, { useRef, useEffect, useState } from "react"
 import { useFrame, useThree } from 'react-three-fiber'
 import { useTexture } from '@react-three/drei'
-import create from 'zustand'
 
-const useStore = create(set => ({
-  lastClickedIndex: 0,
-  setClickedIndex: (val) => set({ lastClickedIndex: val })
-}))
+import useStore from './store.js'
 
 const saekdongColors = ['#ffffff', '#293985', '#b83280', '#f2d44a', '#67213d', '#408f4f', '#c03435']
 const saekdongColors2 = ['#ffffff', '#002df8', '#ff269d', '#ffe900', '#920061', '#10cd48', '#fa203c']
