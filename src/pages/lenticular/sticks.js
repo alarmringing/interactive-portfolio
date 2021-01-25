@@ -9,7 +9,11 @@ const useStore = create(set => ({
   setClickedIndex: (val) => set({ lastClickedIndex: val })
 }))
 
-const NUM_STICKS = 90
+const saekdongColors = ['#ffffff', '#293985', '#b83280', '#f2d44a', '#67213d', '#408f4f', '#c03435']
+const saekdongColors2 = ['#ffffff', '#002df8', '#ff269d', '#ffe900', '#920061', '#10cd48', '#fa203c']
+const saekdongColors3 = ['#ffffff', '#1a3699', '#c81787', '#ffc428', '#843b97', '#0eab50', '#e71739']
+
+const NUM_STICKS = 100
 const STICK_WIDTH = 0.5
 const STICK_HEIGHT = 30
 const ROTATION_DELTA = Math.PI/2
@@ -23,6 +27,8 @@ const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}
 
   const totalSticksWidth = width * Math.sqrt(2) * numSticks
   const zOffsetModifier = 2
+
+  const {clock} = useThree()
 
   // Constructor
   useEffect(() => {
@@ -39,13 +45,13 @@ const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}
     ], 1));
 
     stickRef.current.rotation.set(...destRotation);
+
   }, [])
 
 
   useFrame(() => {
     let destQuaternion = new THREE.Quaternion();
     destQuaternion.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), destRotation[1]);
-
     if (!stickRef.current.rotation.equals(destRotation)) {
         // Lerp rotation
         stickRef.current.quaternion.slerp(destQuaternion, 0.1);
@@ -54,8 +60,8 @@ const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}
         const distToGoal = destRotation[1] - stickRef.current.rotation.y
         if (distToGoal) {
           const zOffset = Math.sin(distToGoal * (Math.PI / ROTATION_DELTA)) * zOffsetModifier
-          const distToSelectedIndex = Math.abs(lastClickedIndex - index)
-          stickRef.current.position.z = zOffset * (5 / (Math.pow(distToSelectedIndex, 0.3) + 5))
+          const distToSelectedIndex = Math.abs(lastClickedIndex - index)/NUM_STICKS
+          stickRef.current.position.z = zOffset * (5 / (Math.pow(distToSelectedIndex*100, 1) + 5))
         }
     }
   })
@@ -63,7 +69,11 @@ const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}
   return (
     <mesh ref={stickRef} receiveShadow onClick={(e) => stickSelectedCallback(index)}>
       <boxBufferGeometry attach="geometry" args={[width, height, width] } />
-      <customMaterial ref={material} attach='material' index={index} numSticks={numSticks} textures={textures}/>
+      <customMaterial ref={material} attach='material' 
+                      index={index} 
+                      numSticks={numSticks} 
+                      textures={textures}
+                      topBottomColor={[1, 1, 1]}/>
     </mesh>
   )
 }
@@ -111,18 +121,17 @@ const Sticks = () => {
     if (!clock.running) return
     let newSticks = [...sticks]
 
-    let i = indMoveCount;
+    let i = indMoveCount
+    let rightInd, leftInd
     // Update the stick rotations when necessary.
     while(Math.pow(i * rotateDelayRate, 0.7) < clock.getElapsedTime()) {
 
-      let rightInd = (lastClickedIndex + i) % numSticks;
-      newSticks[rightInd].destRotation = targetRotation
+      rightInd = lastClickedIndex + i
+      if (rightInd < numSticks) newSticks[rightInd].destRotation = targetRotation
 
-      let leftInd = lastClickedIndex - i;
-      if (leftInd < 0) leftInd = numSticks + leftInd;
-      newSticks[leftInd].destRotation = targetRotation;
+      leftInd = lastClickedIndex - i;
+      if (leftInd >= 0) newSticks[leftInd].destRotation = targetRotation
 
-      console.log("LeftInd: ", leftInd, "RightInd: ", rightInd)
       i += 1
     }
 
@@ -130,20 +139,11 @@ const Sticks = () => {
     setSticks(newSticks)
 
     // End condition
-    if (indMoveCount > numSticks/2) clock.stop()
-    
+    if (rightInd >= numSticks && leftInd < 0) clock.stop()    
   })
 
   return (
     <>
-      <ambientLight intensity={1} />
-      <pointLight intensity={0.25} position={[5, 0, 5]} />
-      <spotLight
-        castShadow
-        position={[-5, 2.5, 5]}
-        intensity={0.25}
-        penumbra={1}
-      />
       {sticks.map((stick) => {
          return (
              <Stick  
