@@ -10,8 +10,8 @@ const Controls = () => {
 
   const dampingFactor = 0.05
 
-  const radius = 70 // Around 70 for projectionCamera
-  const zoom = 25 // Around 25 for orthographicCamera
+  const radius = 90 // Around 70 for projectionCamera
+  const zoom = 23 // Around 25 for orthographicCamera
   const fov = 380
 
   const target = new THREE.Vector3(0, 0, 0)
@@ -79,7 +79,7 @@ const Controls = () => {
   // Default orthographic camera settings: near: 0.1, far: 1000, position.z: 5
 
   return (
-    <pointLight intensity={0.25} position={[5, 0, 5]} />
+    <group />
   )
 }
 

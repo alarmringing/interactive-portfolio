@@ -19,6 +19,7 @@ class CustomMaterial extends ShaderMaterial {
 				uniform sampler2D[6] textures;
 				uniform float numSticks;
 				uniform float index;
+				uniform vec3 topBottomColor;
 				in float vSide;
 				in vec2 vUv;
 				void main() {
@@ -28,8 +29,8 @@ class CustomMaterial extends ShaderMaterial {
 					vec2 uvVal = vec2((1./numSticks)*index + (vUv.x/numSticks), vUv.y);
 					if (boxSide == 0.) texelColor = texture2D( textures[3], uvVal ); // SIDE D
 					else if (boxSide == 1.) texelColor = texture2D( textures[1], uvVal ); // SIDE B
-					else if (boxSide == 2.) texelColor = vec4(1., 1, 1, 1.); //texture2D( textures[2], uvVal ); // TOP
-					else if (boxSide == 3.) texelColor = vec4(1., 1, 1, 1.); //texture2D( textures[3], uvVal ); // BOTTOM
+					else if (boxSide == 2.) texelColor = vec4(topBottomColor, 1.); //texture2D( textures[2], uvVal ); // TOP
+					else if (boxSide == 3.) texelColor = vec4(topBottomColor, 1.); //texture2D( textures[3], uvVal ); // BOTTOM
 					else if (boxSide == 4.) texelColor = texture2D( textures[0], uvVal ); // SIDE A
 					else if (boxSide == 5.) texelColor = texture2D( textures[2], uvVal ); // SIDE C
 
@@ -40,7 +41,8 @@ class CustomMaterial extends ShaderMaterial {
 				textures: { value: [null, null, null, null, null, null] },
 				index: { value: 0 },
 				numSticks: {value: 1},
-			}
+				topBottomColor: {value: [1, 1, 1]}
+			},
 		})
 	}
 	set index(value) {
@@ -53,11 +55,17 @@ class CustomMaterial extends ShaderMaterial {
 	}
 	get numSticks() { return this.uniforms.numSticks.value }
 
+	set topBottomColor(value) {
+		this.uniforms.topBottomColor.value = value
+	}
+	get topBottomColor() { return this.uniforms.topBottomColor.value }
+
 
 	set textures(value) {
 		this.uniforms.textures.value = value
 	}
 	get textures() { return this.uniforms.textures.value }
+
 }
 
 extend({ CustomMaterial })
