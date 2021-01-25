@@ -29,7 +29,7 @@ const Startup = () => {
 }
 
 
-const Scene = () => {
+const Lenticular = () => {
   return (
     <>
       <Stats
@@ -53,4 +53,4 @@ const Scene = () => {
   )
 }
 
-export default Scene
+export default Lenticular
