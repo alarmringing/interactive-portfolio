@@ -49,35 +49,33 @@ const Controls = () => {
   }, [])
 
   const onMouseMove = (e) => {
-    let mouseX = THREE.MathUtils.clamp(e.pageX / window.innerWidth * 1.2 - 0.1, 0, 1) 
-    let mouseY = THREE.MathUtils.clamp(e.pageY / window.innerHeight * 1.2 - 0.1, 0, 1) 
-    setMousePos({x:mouseX, y:mouseY})
-    console.log("Setting last mouse, lenticularTweenProgress is ", lenticularTweenProgress)
-
-    spherical.theta = rightAngle(mouseX)
-    spherical.phi = downAngle(mouseY)
-    spherical.makeSafe();
+    let mouseX = THREE.MathUtils.clamp(e.screenX/ window.innerWidth * 1.2 - 0.1, 0, 1) 
+    let mouseY = THREE.MathUtils.clamp(e.screenY / window.innerHeight * 1.2 - 0.1, 0, 1) 
+    setMousePos({x:mouseX, y:mouseY}) 
   }
 
-  const setForcedSpherical = () => {
+  const setCameraSpherical = () => {
+    let rightAngleAmt = 0
+    let downAngleAmt = 0
 
-    const shouldForceRotateToRightSide = lastIntroMousePos.x > 0.5
-    //let rightAngleAmt = shouldShowLeft ? lenticularTweenProgress : (1 - lenticularTweenProgress)
-    let rightAngleAmt = THREE.MathUtils.lerp(lastIntroMousePos.x, shouldForceRotateToRightSide, lenticularTweenProgress)
-    let downAngleAmt = THREE.MathUtils.lerp(lastIntroMousePos.y, 0.5, lenticularTweenProgress)
-
+    // Only update last mouse position when we aren't force updating controls.
+    if (lenticularTweenProgress === 0) {
+      setLastIntroMousePos({x:mousePos.x, y:mousePos.y})
+      rightAngleAmt = mousePos.x 
+      downAngleAmt = mousePos.y
+    }
+    else if (lenticularTweenProgress > 0) {
+      const shouldForceRotateToRightSide = lastIntroMousePos.x > 0.5
+      rightAngleAmt = THREE.MathUtils.lerp(lastIntroMousePos.x, shouldForceRotateToRightSide, lenticularTweenProgress)
+      downAngleAmt = THREE.MathUtils.lerp(lastIntroMousePos.y, 0.5, lenticularTweenProgress)
+    }
     spherical.theta = rightAngle(rightAngleAmt)
     spherical.phi = downAngle(downAngleAmt)
     spherical.makeSafe();
   }
 
   useFrame((state) => {
-    // Only update last mouse position when we aren't force updating controls.
-    if (lenticularTweenProgress === 0) {
-      setLastIntroMousePos({x:mousePos.x, y:mousePos.y})
-    }
-    
-    if (lenticularTweenProgress > 0) setForcedSpherical() 
+    setCameraSpherical()
 
     // Setup
     let offset = new THREE.Vector3();

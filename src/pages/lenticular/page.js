@@ -1,39 +1,55 @@
 import React, { useEffect, useState, useRef } from "react"
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap } from "gsap"
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import {ScrollToPlugin} from 'gsap/ScrollToPlugin'
 
 import useStore from './store.js'
 
+// const Section = () => {
+// 	return (
+// 		</>
+// 	)
+// }
+
 const Page = ({ canvasRef }) => {
-	const ref = useRef(null)
-	const controlsTween = useRef(null)
+	const introSectionRef = useRef(null)
+	const contentSectionRef = useRef(null)
+
 	const setLenticularTweenProgress = useStore(state => state.setLenticularTweenProgress)
 
 	const updateCameraControls = () => {
-		setLenticularTweenProgress(controlsTween.current.progress())
+		if (scrollTriggerRef.current) setLenticularTweenProgress(scrollTriggerRef.current.progress)
+	}
+
+	const autoScrollToSection = (scroller, direction, goalPoint) => {
+		gsap.to(scroller, {
+		    scrollTo: {y: goalPoint},
+		    duration: 0.8,
+		    ease: 'power1.out'
+		  });
 	}
 
 	useEffect(() => {
+		gsap.registerPlugin(ScrollToPlugin);
 		gsap.registerPlugin(ScrollTrigger);
-		const element = ref.current
-	    controlsTween.current = gsap.to(
-				      {},
-				      {
-				        scrollTrigger: {
-				          trigger: element.querySelector(".section2"),
-				          start: "top bottom",
-				          end: "top top",
-				          scrub: true
-				        },
-				        onUpdate: updateCameraControls
-				      })
+
+		ScrollTrigger.create({
+		  trigger: contentSectionRef.current,
+          start: "top bottom",
+          end: "top top",
+          scrub: true,
+          onUpdate: updateCameraControls,
+          onEnter: ({scroller, end}) => autoScrollToSection(scroller, 1, end),
+          onEnterBack: ({scroller, start}) => autoScrollToSection(scroller, 0, 0),
+          snap: {snapTo: [0, 1], delay: 0.2, duration:{min: 0.3, max: 0.8}}
+		})
 
 	    gsap.to(
-		      element.querySelector('.initialBkg'),
+		      introSectionRef.current,
 		      {
 		        opacity: 1,
 		        scrollTrigger: {
-		          trigger: element.querySelector(".initialBkg"),
+		          trigger: introSectionRef.current,
 		          start: "top top",
 		          end: "bottom top",
 		          scrub: true
@@ -44,7 +60,7 @@ const Page = ({ canvasRef }) => {
 
 	const introSectionStyle = {
 	  width: '100%',
-	  height: '200vh',  
+	  height: '100vh',  
 	  position: 'relative',
 	  backgroundColor: 'black',
 	  opacity: '0.5',
@@ -58,11 +74,11 @@ const Page = ({ canvasRef }) => {
 	}
 
 	return (
-	<div ref={ref}>
-		<div style={introSectionStyle} className='initialBkg'>
+	<div>
+		<div ref={introSectionRef} style={introSectionStyle}>
 			INITIAL BACKGROUND COLOR.
 		</div>
-		<div style={contentSectionStyle} className='section2'>
+		<div ref={contentSectionRef} style={contentSectionStyle}>
 			SECTION 2
 		</div>
 	</div>

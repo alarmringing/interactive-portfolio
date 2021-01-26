@@ -44,6 +44,13 @@ const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}
 
   }, [])
 
+  // TODO: Add some hover animation here.
+  const stickHoveredIn = () => {
+    //stickRef.current.position.y = 1
+  }
+  const stickHoveredOut = () => {
+    //stickRef.current.position.y = 0
+  }
 
   useFrame(() => {
     let destQuaternion = new THREE.Quaternion();
@@ -63,7 +70,8 @@ const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}
   })
 
   return (
-    <mesh ref={stickRef} receiveShadow onClick={(e) => stickSelectedCallback(index)}>
+    <mesh ref={stickRef} receiveShadow onClick={(e) => stickSelectedCallback(index)} 
+          onPointerOver={stickHoveredIn} onPointerOut={stickHoveredOut}>
       <boxBufferGeometry attach="geometry" args={[width, height, width] } />
       <customMaterial ref={material} attach='material' 
                       index={index} 

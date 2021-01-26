@@ -38,18 +38,20 @@ const Lenticular = () => {
     position: 'fixed',
     zIndex: '999'
   }
+
   return (
     <>
       <Stats
         showPanel={0} // Start-up panel (default=0)
         className="stats" // Optional className to add to the stats container dom element
       />
-      <Canvas style={canvasStyle} orthographic alpha={1} ref={canvasRef}
-              onCreated={({ gl, camera }) => {
+      <Canvas style={canvasStyle} orthographic alpha={1}
+              onCreated={({ gl, camera, canvas }) => {
                 //gl.setClearColor('#030303')
                 // Default orthographicCamera settings. near: 0.1, far: 1000, position.z: 5
                 camera.far = 500
                 camera.near = -500
+                canvasRef.current = canvas
               }}>
       >
         <Suspense fallback={<Html center className='loading'> loading... </Html>}>
@@ -57,7 +59,7 @@ const Lenticular = () => {
           <Startup />
         </Suspense>
       </Canvas>
-      <Page canvasRef={canvasRef}/>
+      <Page canvasRef = {canvasRef}/>
     </>
   )
 }
