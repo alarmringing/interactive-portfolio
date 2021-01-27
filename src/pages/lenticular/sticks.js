@@ -3,23 +3,16 @@ import React, { useRef, useEffect, useState } from "react"
 import { useFrame, useThree } from 'react-three-fiber'
 import { useTexture } from '@react-three/drei'
 
-import useStore from './store.js'
+import {constants, useStore} from './store.js'
 
-const saekdongColors = ['#ffffff', '#293985', '#b83280', '#f2d44a', '#67213d', '#408f4f', '#c03435']
-const saekdongColors2 = ['#ffffff', '#002df8', '#ff269d', '#ffe900', '#920061', '#10cd48', '#fa203c']
-const saekdongColors3 = ['#ffffff', '#1a3699', '#c81787', '#ffc428', '#843b97', '#0eab50', '#e71739']
-
-const NUM_STICKS = 100
-const STICK_WIDTH = 0.5
-const STICK_HEIGHT = 30
-const ROTATION_DELTA = Math.PI/2
+const stickConstants = constants.stickConstants
 
 const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}) => {
   const lastClickedIndex = useStore(state => state.lastClickedIndex)
   const stickRef = useRef()
   const material = useRef()
-  const width = STICK_WIDTH
-  const height = STICK_HEIGHT
+  const width = stickConstants.stickWidth
+  const height = stickConstants.stickHeight
 
   const totalSticksWidth = width * Math.sqrt(2) * numSticks
   const zOffsetModifier = 2
@@ -62,8 +55,8 @@ const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}
         // A z-direction 'pop' effect
         const distToGoal = destRotation[1] - stickRef.current.rotation.y
         if (distToGoal) {
-          const zOffset = Math.sin(distToGoal * (Math.PI / ROTATION_DELTA)) * zOffsetModifier
-          const distToSelectedIndex = Math.abs(lastClickedIndex - index)/NUM_STICKS
+          const zOffset = Math.sin(distToGoal * (Math.PI / stickConstants.rotationDelta)) * zOffsetModifier
+          const distToSelectedIndex = Math.abs(lastClickedIndex - index) / stickConstants.numSticks
           stickRef.current.position.z = zOffset * (5 / (Math.pow(distToSelectedIndex*100, 1) + 5))
         }
     }
@@ -88,7 +81,7 @@ const Sticks = () => {
   const lenticularTweenProgress = useStore(state => state.lenticularTweenProgress)
   const [lastClickedIndex, setClickedIndex] = useStore(state => [state.lastClickedIndex, state.setClickedIndex])
 
-  const numSticks = NUM_STICKS
+  const numSticks = stickConstants.numSticks
   const [sticks, setSticks] = useState([])
 
   const loadedTextures = useTexture(['img/korean.jpg', 'img/english.jpg', 'img/chinese.jpg', 'img/japanese.jpg'])
@@ -122,7 +115,7 @@ const Sticks = () => {
     setIndMoveCount(0)
     setClickedIndex(index)
 
-    setTargetRotation(prev => [prev[0], prev[1] + ROTATION_DELTA, prev[2]])
+    setTargetRotation(prev => [prev[0], prev[1] + stickConstants.rotationDelta, prev[2]])
   }
 
   useFrame(() => {

@@ -52,6 +52,7 @@ const Lenticular = () => {
                 camera.far = 500
                 camera.near = -500
                 canvasRef.current = canvas
+                camera.updateProjectionMatrix()
               }}>
       >
         <Suspense fallback={<Html center className='loading'> loading... </Html>}>

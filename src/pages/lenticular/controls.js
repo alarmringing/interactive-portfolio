@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import React, { useEffect, useState } from "react"
 import { useFrame, useThree } from 'react-three-fiber'
 
-import useStore from './store.js'
+import {constants, useStore} from './store.js'
 
 const Controls = () => {
   const MIN_POLAR_ANGLE = Math.PI*2.5/8
@@ -13,8 +13,8 @@ const Controls = () => {
   const dampingFactor = 0.05
 
   const radius = 90 // Around 70 for projectionCamera
-  const zoom = 23 // Around 25 for orthographicCamera
   const fov = 380
+  const totalSticksWidth = constants.stickConstants.stickWidth * Math.sqrt(2) * constants.stickConstants.numSticks
 
   const target = new THREE.Vector3(0, 0, 0)
   const [spherical,] = useState(new THREE.Spherical());
@@ -44,7 +44,6 @@ const Controls = () => {
     spherical.set(radius, rightAngle(0.5), downAngle(0.5))
 
     // Camera setting
-    camera.zoom = zoom
     camera.fov = fov
 
   }, [])
@@ -88,6 +87,14 @@ const Controls = () => {
     spherical.makeSafe();
   }
 
+  const setCameraBounds = () => {
+    camera.left = -totalSticksWidth / 2 * 0.8
+    camera.right = totalSticksWidth / 2 * 0.8
+    const aspectRatio = window.innerWidth / window.innerHeight
+    camera.bottom = camera.left / aspectRatio
+    camera.top = camera.right / aspectRatio
+  }
+
   useFrame((state) => {
     setCameraSpherical()
 
@@ -112,8 +119,8 @@ const Controls = () => {
     destination.copy(target).add(offset);
 
     camera.position.lerp(destination, 0.125)
+    setCameraBounds()
     camera.lookAt(target);
-    camera.zoom = zoom
     camera.updateProjectionMatrix()
   })
 

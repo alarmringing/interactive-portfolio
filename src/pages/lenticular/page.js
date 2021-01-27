@@ -3,7 +3,8 @@ import { gsap } from "gsap"
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {ScrollToPlugin} from 'gsap/ScrollToPlugin'
 
-import useStore from './store.js'
+import {useStore} from './store.js'
+
 
 // const Section = () => {
 // 	return (
