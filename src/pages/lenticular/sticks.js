@@ -85,6 +85,7 @@ const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}
 
 
 const Sticks = () => {
+  const lenticularTweenProgress = useStore(state => state.lenticularTweenProgress)
   const [lastClickedIndex, setClickedIndex] = useStore(state => [state.lastClickedIndex, state.setClickedIndex])
 
   const numSticks = NUM_STICKS
@@ -113,6 +114,9 @@ const Sticks = () => {
   },[])
 
   const stickSelectedCallback = (index) => {
+    // Interaction is disabled if not in intro screen state
+    if (lenticularTweenProgress > 0) return
+
     clock.start()
 
     setIndMoveCount(0)

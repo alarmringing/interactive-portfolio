@@ -21,6 +21,7 @@ const Controls = () => {
   const [sphericalDelta,] = useState(new THREE.Spherical());
 
   const lenticularTweenProgress = useStore(state => state.lenticularTweenProgress)
+  const isLenticularTweenScrollingDown = useStore(state => state.isLenticularTweenScrollingDown)
   const [mousePos, setMousePos] = useState({x:0, y:0})
   const [lastIntroMousePos, setLastIntroMousePos] = useState({x:0, y:0})
 
@@ -49,8 +50,8 @@ const Controls = () => {
   }, [])
 
   const onMouseMove = (e) => {
-    let mouseX = THREE.MathUtils.clamp(e.screenX/ window.innerWidth * 1.2 - 0.1, 0, 1) 
-    let mouseY = THREE.MathUtils.clamp(e.screenY / window.innerHeight * 1.2 - 0.1, 0, 1) 
+    let mouseX = THREE.MathUtils.clamp(e.clientX / window.innerWidth, 0, 1) 
+    let mouseY = THREE.MathUtils.clamp(e.clientY / window.innerHeight, 0, 1) 
     setMousePos({x:mouseX, y:mouseY}) 
   }
 
@@ -58,19 +59,32 @@ const Controls = () => {
     let rightAngleAmt = 0
     let downAngleAmt = 0
 
-    // Only update last mouse position when we aren't force updating controls.
+    // We are in the intro section.
     if (lenticularTweenProgress === 0) {
+      // Set the current rotation entirely based on the current mouse position.
       setLastIntroMousePos({x:mousePos.x, y:mousePos.y})
-      rightAngleAmt = mousePos.x 
-      downAngleAmt = mousePos.y
+      spherical.theta = rightAngle(mousePos.x)
+      spherical.phi = downAngle(mousePos.y)
     }
-    else if (lenticularTweenProgress > 0) {
-      const shouldForceRotateToRightSide = lastIntroMousePos.x > 0.5
-      rightAngleAmt = THREE.MathUtils.lerp(lastIntroMousePos.x, shouldForceRotateToRightSide, lenticularTweenProgress)
-      downAngleAmt = THREE.MathUtils.lerp(lastIntroMousePos.y, 0.5, lenticularTweenProgress)
-    }
-    spherical.theta = rightAngle(rightAngleAmt)
-    spherical.phi = downAngle(downAngleAmt)
+    // When lenticularTween is moving, angle is interpolated bewteen last mouse position and the end point.
+    else {
+      // Scrolling down
+      if (isLenticularTweenScrollingDown) {
+        // Force flip to end of either side.
+        const shouldForceRotateToRightSide = lastIntroMousePos.x > 0.5
+        rightAngleAmt = rightAngle(THREE.MathUtils.lerp(lastIntroMousePos.x, shouldForceRotateToRightSide, lenticularTweenProgress))
+      } 
+      // Scrolling up
+      else {
+        // Update the current mouse position to interpolate with when scrolling up, to reduce surprise jitter when fully back in intro section.
+        setLastIntroMousePos({x:mousePos.x, y:mousePos.y})
+        rightAngleAmt = THREE.MathUtils.lerp(rightAngle(lastIntroMousePos.x), spherical.theta, lenticularTweenProgress)
+      }
+      downAngleAmt = downAngle(THREE.MathUtils.lerp(lastIntroMousePos.y, 0.5, lenticularTweenProgress))
+      spherical.theta = rightAngleAmt
+      spherical.phi = downAngleAmt
+    } 
+      
     spherical.makeSafe();
   }
 

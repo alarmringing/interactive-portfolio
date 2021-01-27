@@ -6,6 +6,12 @@ const useStore = create(set => ({
 
   lenticularTweenProgress: 0,
   setLenticularTweenProgress: (val) => set({lenticularTweenProgress: val}),
+
+  lenticularTweenProgress: 0,
+  setLenticularTweenProgress: (val) => set({lenticularTweenProgress: val}),
+
+  isLenticularTweenScrollingDown: 1,
+  setIsLenticularTweenScrollingDown: (val) => set({isLenticularTweenScrollingDown: val > 0}),
 }))
 
 export default useStore
