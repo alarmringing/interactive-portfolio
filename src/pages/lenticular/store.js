@@ -48,7 +48,7 @@ const useStore = create((set, get) => ({
   setCurrentPageTypeWithMouseXPos: (mouseXPos) => {
   	let currentYRot = get().globalStickTargetRotation[1] % (Math.PI*2)
  	const delta = (mouseXPos < 0.5) ? -Math.PI/4 : Math.PI/4
- 	const pageTypeInd = ((currentYRot + delta) / (Math.PI/2)) + 1
+ 	const pageTypeInd = Math.round(((currentYRot + delta) / (Math.PI/2))) + 1
   	set({currentPageType: pageTypeInd})
   },
   colorToBkgColorMapping: (val) => {

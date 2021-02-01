@@ -16,6 +16,7 @@ import {constants, useStore} from './store.js'
 const Page = ({ canvasRef }) => {
 	const introSectionRef = useRef(null)
 	const contentSectionRef = useRef(null)
+	const btwTitleAndContentRef = useRef(null)
 	const mousePosRef = useRef({})
 
 	// Global var -- lenticular 
@@ -41,9 +42,10 @@ const Page = ({ canvasRef }) => {
 	const contentSectionStyle = {
 	  width: '100%',
 	  height: '500vh',  
-	  position: 'relative',
 	}
 	const [contentBkgColor, setContentBkgColor] = useState('#ffc428')
+
+	const distFromTitleToContent = 2000
 
 	const onMouseMove = (e) => {
 	    let mouseX = THREE.MathUtils.clamp(e.clientX / window.innerWidth, 0, 1) 
@@ -79,7 +81,8 @@ const Page = ({ canvasRef }) => {
 		gsap.registerPlugin(ScrollToPlugin);
 		gsap.registerPlugin(ScrollTrigger);
 
-		let scroll = ScrollTrigger.create({
+		// Intro scroll from lenticular intro to contentSection
+		let introScroll = ScrollTrigger.create({
 		  trigger: introSectionRef.current,
           start: "top top",
           end: "bottom top",
@@ -87,9 +90,10 @@ const Page = ({ canvasRef }) => {
           onEnter: ({scroller, end}) => onEnter(scroller, 1, end+1),
           onEnterBack: ({scroller, start}) => onEnter(scroller, -1, 0),
 		})
-		setIntroScrollTrigger(scroll.start, scroll.end, scroll.scroller)
-		    console.log("introScrollTrigger is ", introScrollTrigger)
+		introScroll.scroller.scrollTo(0, 0)
+		setIntroScrollTrigger(introScroll.start, introScroll.end, introScroll.scroller)
 
+		// Changes background Color of introSection
 	    gsap.to(
 		      introSectionRef.current,
 		      {
@@ -102,6 +106,26 @@ const Page = ({ canvasRef }) => {
 		        },
 		      })
 
+	    // Fades away intro canvas as scrolls down to content
+	    gsap.fromTo(
+	    	canvasRef.current,
+	    	{
+	    		opacity: 1,
+	    		top: '0%',
+	    	},
+	    	{
+	    		opacity: 0,
+	    		top: '-100%',
+	    		scrollTrigger: {
+		    		trigger: btwTitleAndContentRef.current,
+		    		start: "top bottom",
+		    		end: "bottom top",
+		    		scrub: 0.9,
+		    		ease: 'power4.in',
+		    	}
+	    	}
+	    )
+
 	},[])
 
 	return (
@@ -110,7 +134,11 @@ const Page = ({ canvasRef }) => {
 			INITIAL BACKGROUND COLOR.
 		</div>
 		<div ref={contentSectionRef} style={{...contentSectionStyle, backgroundColor: contentBkgColor}}>
-			SECTION 2
+			<div ref={btwTitleAndContentRef} style={{position:'relative', top:'150vh', width: '100%', height: '300vh'}} />
+			<div>
+				LOREM IPSUM LOREM IPSUM LOREM IPSUM
+			</div>
+
 		</div>
 	</div>
 	)

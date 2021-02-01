@@ -36,7 +36,8 @@ const Lenticular = () => {
     height: '100%',
     width: '100%',
     position: 'fixed',
-    zIndex: '999'
+    zIndex: '999',
+    top: '0%',
   }
 
   return (
@@ -45,21 +46,22 @@ const Lenticular = () => {
         showPanel={0} // Start-up panel (default=0)
         className="stats" // Optional className to add to the stats container dom element
       />
-      <Canvas style={canvasStyle} orthographic alpha={1}
-              onCreated={({ gl, camera, canvas }) => {
-                //gl.setClearColor('#030303')
-                // Default orthographicCamera settings. near: 0.1, far: 1000, position.z: 5
-                camera.far = 500
-                camera.near = -500
-                canvasRef.current = canvas
-                camera.updateProjectionMatrix()
-              }}>
-      >
-        <Suspense fallback={<Html center className='loading'> loading... </Html>}>
-          <MainScene />
-          <Startup />
-        </Suspense>
-      </Canvas>
+      <div alpha={1}  style={canvasStyle} ref={canvasRef}>
+        <Canvas orthographic alpha={1}
+                onCreated={({ gl, camera }) => {
+                  //gl.setClearColor('#030303')
+                  // Default orthographicCamera settings. near: 0.1, far: 1000, position.z: 5
+                  camera.far = 500
+                  camera.near = -500
+                  camera.updateProjectionMatrix()
+                }}>
+        >
+          <Suspense fallback={<Html center className='loading'> loading... </Html>}>
+            <MainScene />
+            <Startup />
+          </Suspense>
+        </Canvas>
+      </div>
       <Page canvasRef = {canvasRef}/>
     </>
   )
