@@ -8,7 +8,7 @@ import {constants, useStore} from './store.js'
 const stickConstants = constants.stickConstants
 
 const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}) => {
-  const lastClickedIndex = useStore(state => state.lastClickedIndex)
+  const lastClickedStickIndex = useStore(state => state.lastClickedStickIndex)
   const stickRef = useRef()
   const material = useRef()
   const width = stickConstants.stickWidth
@@ -56,7 +56,7 @@ const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}
         const distToGoal = destRotation[1] - stickRef.current.rotation.y
         if (distToGoal) {
           const zOffset = Math.sin(distToGoal * (Math.PI / stickConstants.rotationDelta)) * zOffsetModifier
-          const distToSelectedIndex = Math.abs(lastClickedIndex - index) / stickConstants.numSticks
+          const distToSelectedIndex = Math.abs(lastClickedStickIndex - index) / stickConstants.numSticks
           stickRef.current.position.z = zOffset * (5 / (Math.pow(distToSelectedIndex*100, 1) + 5))
         }
     }
@@ -79,7 +79,7 @@ const Stick = ({index, numSticks, textures, destRotation, stickSelectedCallback}
 
 const Sticks = () => {
   const lenticularTweenProgress = useStore(state => state.lenticularTweenProgress)
-  const [lastClickedIndex, setClickedIndex] = useStore(state => [state.lastClickedIndex, state.setClickedIndex])
+  const [lastClickedStickIndex, setClickedStickIndex] = useStore(state => [state.lastClickedStickIndex, state.setClickedStickIndex])
 
   const numSticks = stickConstants.numSticks
   const [sticks, setSticks] = useState([])
@@ -94,13 +94,14 @@ const Sticks = () => {
   const [indMoveCount, setIndMoveCount] = useState(-1)
 
   const [timeElapsedSinceRotateStart, setTimeElapsedSinceRotateStart] = useState(-1)
-  const [targetRotation, setTargetRotation] = useState([0, Math.PI/4, 0])
+  const [globalStickTargetRotation, advanceGlobalStickTargetYRotation] = 
+        useStore(state => [state.globalStickTargetRotation, state.advanceGlobalStickTargetYRotation])
   const rotateDelayRate = 0.01
 
   // Initializer
   useEffect(() => {
     for (let i = 0; i < numSticks; i++) {
-      let newStick = {index:i, destRotation:targetRotation}
+      let newStick = {index:i, destRotation:globalStickTargetRotation}
       setSticks( sticks => [...sticks, newStick]);
     }
     clock.stop()
@@ -113,9 +114,9 @@ const Sticks = () => {
     clock.start()
 
     setIndMoveCount(0)
-    setClickedIndex(index)
+    setClickedStickIndex(index)
 
-    setTargetRotation(prev => [prev[0], prev[1] + stickConstants.rotationDelta, prev[2]])
+    advanceGlobalStickTargetYRotation(stickConstants.rotationDelta)
   }
 
   useFrame(() => {
@@ -127,11 +128,11 @@ const Sticks = () => {
     // Update the stick rotations when necessary.
     while(Math.pow(i * rotateDelayRate, 0.7) < clock.getElapsedTime()) {
 
-      rightInd = lastClickedIndex + i
-      if (rightInd < numSticks) newSticks[rightInd].destRotation = targetRotation
+      rightInd = lastClickedStickIndex + i
+      if (rightInd < numSticks) newSticks[rightInd].destRotation = globalStickTargetRotation
 
-      leftInd = lastClickedIndex - i;
-      if (leftInd >= 0) newSticks[leftInd].destRotation = targetRotation
+      leftInd = lastClickedStickIndex - i;
+      if (leftInd >= 0) newSticks[leftInd].destRotation = globalStickTargetRotation
 
       i += 1
     }

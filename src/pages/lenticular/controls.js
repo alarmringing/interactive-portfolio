@@ -20,8 +20,11 @@ const Controls = () => {
   const [spherical,] = useState(new THREE.Spherical());
   const [sphericalDelta,] = useState(new THREE.Spherical());
 
+  // Global var
   const lenticularTweenProgress = useStore(state => state.lenticularTweenProgress)
   const isLenticularTweenScrollingDown = useStore(state => state.isLenticularTweenScrollingDown)
+
+  // Local var
   const [mousePos, setMousePos] = useState({x:0, y:0})
   const [lastIntroMousePos, setLastIntroMousePos] = useState({x:0, y:0})
 
@@ -42,10 +45,6 @@ const Controls = () => {
   useEffect(() => {
     document.addEventListener('mousemove', onMouseMove)
     spherical.set(radius, rightAngle(0.5), downAngle(0.5))
-
-    // Camera setting
-    camera.fov = fov
-
   }, [])
 
   const onMouseMove = (e) => {

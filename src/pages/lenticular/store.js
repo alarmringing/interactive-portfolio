@@ -13,14 +13,29 @@ const stickConstants = {
 	rotationDelta: Math.PI/2,
 }
 
+const PageTypeEnum = {ABOUT:1, PROJECTS:2, THIRD:3, FOURTH:4}
+
 const constants = {
 	colorConstants,
-	stickConstants
+	stickConstants,
+	PageTypeEnum
 }
 
-const useStore = create(set => ({
-  lastClickedIndex: 0,
-  setClickedIndex: (val) => set({ lastClickedIndex: val }),
+const useStore = create((set, get) => ({
+  lastClickedStickIndex: 0,
+  setClickedStickIndex: (val) => set({ lastClickedStickIndex: val }),
+
+  globalStickTargetRotation: [0, Math.PI/4, 0],
+  setGlobalStickTargetRotation: (val) => set({ globalStickTargetRotation: val }),
+  advanceGlobalStickTargetYRotation: (rotationDelta) => {
+	  set(state => {
+	  	let prevR = state.globalStickTargetRotation
+	    return {
+	      ...state,
+	      globalStickTargetRotation: [prevR[0], prevR[1] + rotationDelta, prevR[2]]
+	    }
+	  })
+	},
 
   lenticularTweenProgress: 0,
   setLenticularTweenProgress: (val) => set({lenticularTweenProgress: val}),
@@ -30,6 +45,39 @@ const useStore = create(set => ({
 
   isLenticularTweenScrollingDown: 1,
   setIsLenticularTweenScrollingDown: (val) => set({isLenticularTweenScrollingDown: val > 0}),
+
+  currentPageType: PageTypeEnum.ABOUT,
+  setCurrentPageTypeWithMouseXPos: (mouseXPos) => {
+  	let currentYRot = get().globalStickTargetRotation[1] % (Math.PI*2)
+ 	const delta = (mouseXPos < 0.5) ? -Math.PI/4 : Math.PI/4
+ 	const pageTypeInd = ((currentYRot + delta) / (Math.PI/2)) + 1
+  	set({currentPageType: pageTypeInd})
+  },
+  colorToBkgColorMapping: (val) => {
+  	let colorId = 0
+  	switch(val){
+  		case(PageTypeEnum.ABOUT):
+  			colorId = 3
+  			break
+  		case(PageTypeEnum.PROJECTS):
+  			colorId = 6
+  			break
+  		case(PageTypeEnum.THIRD):
+  			colorId = 1
+  			break
+  		case(PageTypeEnum.FOURTH):
+  			colorId = 2
+  			break
+  	}
+  	return(colorConstants.saekdongColors3[colorId])
+  },
+  currentBkgColor: () => {
+  	return get().colorToBkgColorMapping(get().currentPageType)
+  },
+  currentTextPrimaryColor: () => {
+  	let nextPageTypeColor = (get().currentPageType + 1) % 4
+  	return get().colorToBkgColorMapping(nextPageTypeColor)
+  }
 }))
 
 export {constants, useStore}
