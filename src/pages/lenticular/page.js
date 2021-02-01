@@ -19,7 +19,7 @@ const Page = ({ canvasRef }) => {
 	const mousePosRef = useRef({})
 
 	// Global var -- lenticular 
-	const setLenticularTweenProgress = useStore(state => state.setLenticularTweenProgress)
+	const [introScrollTrigger, setIntroScrollTrigger] = useStore(state => [state.introScrollTrigger, state.setIntroScrollTrigger])
 	const setIsLenticularTweenScrollingDown = useStore(state => state.setIsLenticularTweenScrollingDown)
 
 	// Global var -- sections
@@ -52,12 +52,9 @@ const Page = ({ canvasRef }) => {
 	    mousePosRef.current.y = mouseY
 	}
 
-	const updateGlobalTweenInfo = (progress, direction) => {
-		setLenticularTweenProgress(progress)
-		setIsLenticularTweenScrollingDown(direction > 0) 
-	}
-
 	const onEnter = (scroller, direction, goalPoint) => {
+		setIsLenticularTweenScrollingDown(direction > 0) 
+
 		// Initiate scroll down
 		if (direction > 0) {
 			// If we had changed sides...
@@ -71,7 +68,7 @@ const Page = ({ canvasRef }) => {
 		    	y: goalPoint,
 		    	autoKill:false
 		    },
-		    duration: 0.75,
+		    duration: 0.9,
 		    overwrite: true,
 		    ease: 'power1.out'
 		  });
@@ -82,18 +79,16 @@ const Page = ({ canvasRef }) => {
 		gsap.registerPlugin(ScrollToPlugin);
 		gsap.registerPlugin(ScrollTrigger);
 
-		ScrollTrigger.create({
+		let scroll = ScrollTrigger.create({
 		  trigger: introSectionRef.current,
           start: "top top",
           end: "bottom top",
           scrub: true,
-          onUpdate: ({progress, direction}) => {
-          	setLenticularTweenProgress(progress)
-			setIsLenticularTweenScrollingDown(direction > 0) 
-          },
           onEnter: ({scroller, end}) => onEnter(scroller, 1, end+1),
           onEnterBack: ({scroller, start}) => onEnter(scroller, -1, 0),
 		})
+		setIntroScrollTrigger(scroll.start, scroll.end, scroll.scroller)
+		    console.log("introScrollTrigger is ", introScrollTrigger)
 
 	    gsap.to(
 		      introSectionRef.current,

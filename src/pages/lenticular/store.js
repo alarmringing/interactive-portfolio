@@ -37,11 +37,9 @@ const useStore = create((set, get) => ({
 	  })
 	},
 
-  lenticularTweenProgress: 0,
-  setLenticularTweenProgress: (val) => set({lenticularTweenProgress: val}),
-
-  lenticularTweenProgress: 0,
-  setLenticularTweenProgress: (val) => set({lenticularTweenProgress: val}),
+  introScrollTrigger: {start: 0, end: 100, scroller:{}},
+  setIntroScrollTrigger: (startPoint, endPoint, scroller) => set({
+  	introScrollTrigger: {start: startPoint, end: endPoint, scroller: scroller}}),
 
   isLenticularTweenScrollingDown: 1,
   setIsLenticularTweenScrollingDown: (val) => set({isLenticularTweenScrollingDown: val > 0}),

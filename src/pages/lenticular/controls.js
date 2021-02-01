@@ -21,7 +21,7 @@ const Controls = () => {
   const [sphericalDelta,] = useState(new THREE.Spherical());
 
   // Global var
-  const lenticularTweenProgress = useStore(state => state.lenticularTweenProgress)
+  const introScrollTrigger = useStore(state => state.introScrollTrigger)
   const isLenticularTweenScrollingDown = useStore(state => state.isLenticularTweenScrollingDown)
 
   // Local var
@@ -41,6 +41,14 @@ const Controls = () => {
     return MIN_POLAR_ANGLE + (MAX_POLAR_ANGLE - MIN_POLAR_ANGLE) * interp
   }
 
+  const introProgress = () => {
+    const curr = introScrollTrigger.scroller.scrollY
+    const start = introScrollTrigger.start
+    const end = introScrollTrigger.end
+    //console.log("curr: ", curr, "start: ", start, "end: ", end)
+    return THREE.MathUtils.clamp((curr - start ) / (end - start), 0, 1)
+  }
+
   // Constructor
   useEffect(() => {
     document.addEventListener('mousemove', onMouseMove)
@@ -58,7 +66,7 @@ const Controls = () => {
     let downAngleAmt = 0
 
     // We are in the intro section.
-    if (lenticularTweenProgress === 0) {
+    if (introProgress() === 0) {
       // Set the current rotation entirely based on the current mouse position.
       setLastIntroMousePos({x:mousePos.x, y:mousePos.y})
       spherical.theta = rightAngle(mousePos.x)
@@ -70,15 +78,15 @@ const Controls = () => {
       if (isLenticularTweenScrollingDown) {
         // Force flip to end of either side.
         const shouldForceRotateToRightSide = lastIntroMousePos.x > 0.5
-        rightAngleAmt = rightAngle(THREE.MathUtils.lerp(lastIntroMousePos.x, shouldForceRotateToRightSide, lenticularTweenProgress))
+        rightAngleAmt = rightAngle(THREE.MathUtils.lerp(lastIntroMousePos.x, shouldForceRotateToRightSide, introProgress()))
       } 
       // Scrolling up
       else {
         // Update the current mouse position to interpolate with when scrolling up, to reduce surprise jitter when fully back in intro section.
         setLastIntroMousePos({x:mousePos.x, y:mousePos.y})
-        rightAngleAmt = THREE.MathUtils.lerp(rightAngle(lastIntroMousePos.x), spherical.theta, lenticularTweenProgress)
+        rightAngleAmt = THREE.MathUtils.lerp(rightAngle(lastIntroMousePos.x), spherical.theta, introProgress())
       }
-      downAngleAmt = downAngle(THREE.MathUtils.lerp(lastIntroMousePos.y, 0.5, lenticularTweenProgress))
+      downAngleAmt = downAngle(THREE.MathUtils.lerp(lastIntroMousePos.y, 0.5, introProgress()))
       spherical.theta = rightAngleAmt
       spherical.phi = downAngleAmt
     } 
