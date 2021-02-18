@@ -1,7 +1,7 @@
 ---
 intro:
-  korean: d
-  english: d
+  korean: "바뀌어졌는가? "
+  english: I don't know.
   japanese: d
   chinese: d
 links:
