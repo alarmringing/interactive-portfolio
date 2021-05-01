@@ -39,7 +39,9 @@ const useStore = create((set, get) => ({
 
   introScrollTrigger: {start: 0, end: 100, scroller:{}},
   setIntroScrollTrigger: (startPoint, endPoint, scroller) => set({
-  	introScrollTrigger: {start: startPoint, end: endPoint, scroller: scroller}}),
+  	introScrollTrigger: {start: startPoint, end: endPoint, scroller: scroller}
+  }),
+  getIsInIntroState: () => { return get().introScrollTrigger.scroller.scrollY <= 0 },
 
   isLenticularTweenScrollingDown: 1,
   setIsLenticularTweenScrollingDown: (val) => set({isLenticularTweenScrollingDown: val > 0}),

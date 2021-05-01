@@ -5,15 +5,15 @@ import { Html, Stats } from '@react-three/drei'
 import lerp from 'lerp'
 
 import './lenticularShader.js'
-import Sticks from './sticks.js'
-import Page from './page.js'
-import Controls from './controls.js'
+import SticksController from './SticksController.js'
+import Page from './Page.js'
+import Controls from './Controls.js'
 
 const MainScene = () => {
   return (
     <>
       <Controls />
-      <Sticks />
+      <SticksController />
     </>
   )
 }
@@ -30,7 +30,7 @@ const Startup = () => {
 }
 
 
-const Lenticular = () => {
+const LenticularCanvas = () => {
   const canvasRef = useRef(null)
   const canvasStyle = {
     height: '100%',
@@ -67,4 +67,4 @@ const Lenticular = () => {
   )
 }
 
-export default Lenticular
+export default LenticularCanvas

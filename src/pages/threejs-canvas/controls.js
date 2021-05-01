@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import React, { useEffect, useState } from "react"
 import { useFrame, useThree } from 'react-three-fiber'
 
-import {constants, useStore} from './store.js'
+import {constants, useStore} from './Store.js'
 
 const Controls = () => {
   const MIN_POLAR_ANGLE = Math.PI*2.5/8

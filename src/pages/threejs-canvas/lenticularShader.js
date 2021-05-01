@@ -41,7 +41,7 @@ class CustomMaterial extends ShaderMaterial {
 				textures: { value: [null, null, null, null, null, null] },
 				index: { value: 0 },
 				numSticks: {value: 1},
-				topBottomColor: {value: [1, 1, 1]}
+				topBottomColor: {value: [1, 1, 1]},
 			},
 		})
 	}

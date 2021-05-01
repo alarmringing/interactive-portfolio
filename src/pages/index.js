@@ -3,7 +3,7 @@ import React from "react"
 //import CyberpunkPractice from './cyberpunk/cyberpunk-practice.js'
 //import Scene from './kinetic-typography/basic-intro.js'
 //import Scene from './text-physics/scene.js'
-import Lenticular from './threejs-canvas/lenticular.js'
+import LenticularCanvas from './threejs-canvas/LenticularCanvas.js'
 
 //import './rock-tutorial/threepractice.scss'
 //import './cyberpunk/cyberpunk.css'
@@ -11,7 +11,7 @@ import Lenticular from './threejs-canvas/lenticular.js'
 const App = () => {
   return (
     <>
-    	<Lenticular />
+    	<LenticularCanvas />
     </>
   )
 }
