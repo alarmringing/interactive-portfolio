@@ -4,7 +4,7 @@ import { Canvas, useFrame } from 'react-three-fiber'
 import { Html, Stats } from '@react-three/drei'
 import lerp from 'lerp'
 
-import './lenticularShader.js'
+import './LenticularShader.js'
 import SticksController from './SticksController.js'
 import Page from './Page.js'
 import Controls from './Controls.js'

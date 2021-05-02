@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import React, { useRef, useEffect, useState } from "react"
 import { useFrame, useThree } from 'react-three-fiber'
 
-simport {constants, useStore} from './Store.js'
+import {constants, useStore} from './Store.js'
 
 const stickConstants = constants.stickConstants
 

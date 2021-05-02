@@ -53,7 +53,7 @@ const useStore = create((set, get) => ({
  	const pageTypeInd = Math.round(((currentYRot + delta) / (Math.PI/2))) + 1
   	set({currentPageType: pageTypeInd})
   },
-  colorToBkgColorMapping: (val) => {
+  pageTypeToBkgColorMapping: (val) => {
   	let colorId = 0
   	switch(val){
   		case(PageTypeEnum.ABOUT):
@@ -71,12 +71,14 @@ const useStore = create((set, get) => ({
   	}
   	return(colorConstants.saekdongColors3[colorId])
   },
+  pageTypeToTextPrimaryColorMapping: (val) => {
+    return get().pageTypeToBkgColorMapping(((val + 1) % 4)+ 1)
+  },
   currentBkgColor: () => {
-  	return get().colorToBkgColorMapping(get().currentPageType)
+  	return get().pageTypeToBkgColorMapping(get().currentPageType)
   },
   currentTextPrimaryColor: () => {
-  	let nextPageTypeColor = (get().currentPageType + 1) % 4
-  	return get().colorToBkgColorMapping(nextPageTypeColor)
+  	return get().pageTypeToTextPrimaryColorMapping(get().currentPageType)
   }
 }))
 

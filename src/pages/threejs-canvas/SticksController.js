@@ -1,25 +1,22 @@
 import * as THREE from 'three'
 import React, { useRef, useEffect, useState } from "react"
-import { useFrame, useThree } from 'react-three-fiber'
-import { useTexture } from '@react-three/drei'
+import { useFrame, useThree, useFBO } from 'react-three-fiber'
+import { useTexture, Box } from '@react-three/drei'
 
 import {constants, useStore} from './Store.js'
 import Stick from './Stick.js'
-
-const stickConstants = constants.stickConstants
+import Text2Textures from './Text2Textures.js'
 
 const SticksController = () => {
+  // States from zustand.
   const getIsInIntroState = useStore(state => state.getIsInIntroState)
   const [lastClickedStickIndex, setClickedStickIndex] = useStore(state => [state.lastClickedStickIndex, state.setClickedStickIndex])
 
-  const numSticks = stickConstants.numSticks
+  // Settings for sticks.
+  const stickConstants = constants.stickConstants
+
+  // Sticks.
   const [sticks, setSticks] = useState([])
-
-  const loadedTextures = useTexture(['img/korean.jpg', 'img/english.jpg', 'img/chinese.jpg', 'img/japanese.jpg'])
-  let [korean, english, japanese, chinese] = loadedTextures.map(texture => ((texture.minFilter = THREE.LinearFilter), texture))
-  // First four or the sides of the stick. Last two are top and bottom.
-  let textures = [korean, english, japanese, chinese, 0, 0] 
-
   const {clock} = useThree()
 
   const [indMoveCount, setIndMoveCount] = useState(-1)
@@ -29,9 +26,20 @@ const SticksController = () => {
         useStore(state => [state.globalStickTargetRotation, state.advanceGlobalStickTargetYRotation])
   const rotateDelayRate = 0.01
 
-  // Initializer
+  // Stick textures.
+  const loadedTextureFiles = useTexture(['img/korean.jpg', 'img/english.jpg', 'img/chinese.jpg', 'img/japanese.jpg'])
+  const [korean, english, japanese, chinese] = loadedTextureFiles.map(texture => ((texture.minFilter = THREE.LinearFilter), texture))
+  const width = 10 * stickConstants.stickWidth * stickConstants.numSticks
+  const height = 10 * stickConstants.stickHeight
+  const renderTargets = Array.from({ length: 4 }, () => (new THREE.WebGLRenderTarget(width, height, {
+      format: THREE.RGBFormat,
+      stencilBuffer: false,
+    })));
+  const textures = [renderTargets[0].texture, renderTargets[1].texture, japanese, chinese];
+
+  // Sticks Initializer
   useEffect(() => {
-    for (let i = 0; i < numSticks; i++) {
+        for (let i = 0; i < stickConstants.numSticks; i++) {
       let newStick = {index:i, destRotation:globalStickTargetRotation}
       setSticks( sticks => [...sticks, newStick]);
     }
@@ -60,7 +68,7 @@ const SticksController = () => {
     while(Math.pow(i * rotateDelayRate, 0.7) < clock.getElapsedTime()) {
 
       rightInd = lastClickedStickIndex + i
-      if (rightInd < numSticks) newSticks[rightInd].destRotation = globalStickTargetRotation
+      if (rightInd < stickConstants.numSticks) newSticks[rightInd].destRotation = globalStickTargetRotation
 
       leftInd = lastClickedStickIndex - i;
       if (leftInd >= 0) newSticks[leftInd].destRotation = globalStickTargetRotation
@@ -72,17 +80,18 @@ const SticksController = () => {
     setSticks(newSticks)
 
     // End condition
-    if (rightInd >= numSticks && leftInd < 0) clock.stop()    
+    if (rightInd >= stickConstants.numSticks && leftInd < 0) clock.stop()    
   })
 
   return (
     <>
+      <Text2Textures renderTargets={renderTargets} />
       {sticks.map((stick) => {
          return (
              <Stick  
                      key={stick.index} 
+                     numSticks={stickConstants.numSticks}
                      index={stick.index} 
-                     numSticks={numSticks} 
                      destRotation={stick.destRotation} 
                      textures={textures} 
                      stickSelectedCallback={stickSelectedCallback}
