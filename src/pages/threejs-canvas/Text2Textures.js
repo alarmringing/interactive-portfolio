@@ -1,85 +1,87 @@
-import * as THREE from 'three'
-import React, { useRef, useEffect, useState, useMemo } from "react"
-import { createPortal, useFrame, useThree } from 'react-three-fiber'
-import { PerspectiveCamera, TorusKnot, Text } from '@react-three/drei'
+import * as THREE from "three";
+import React, { useRef, useEffect, useState, useMemo } from "react";
+import { createPortal, useFrame, useThree } from "react-three-fiber";
+import { PerspectiveCamera, TorusKnot, Text } from "@react-three/drei";
 
-import {constants, useStore} from './Store.js'
+import { constants, useStore } from "./Store.js";
 
-function SpinningThing() {
-  const mesh = useRef()
-  useFrame(() => (mesh.current.rotation.x = mesh.current.rotation.y = mesh.current.rotation.z += 0.01))
+const SpinningThing = ({ textColor }) => {
+  const mesh = useRef();
+  const objectColor = new THREE.Color(textColor);
+  useEffect(() => {
+    console.log("textColor is ", objectColor);
+  });
+  useFrame(() => {
+    mesh.current.rotation.x = mesh.current.rotation.y = mesh.current.rotation.z += 0.01;
+  });
   return (
     <TorusKnot ref={mesh} args={[1, 0.4, 100, 64]}>
-      <meshNormalMaterial attach="material" />
+      <meshNormalMaterial attach="material" color={"orange"} />
     </TorusKnot>
-  )
-}
+  );
+};
 
-
-const TextScene = ({renderTarget, text, fontPath, textColor}) => {
+const TextScene = ({ text, fontPath, textColor }) => {
   return (
     <>
-    	<Text>
-    		{text}
-    	</Text>
+      <Text>{text}</Text>
     </>
-  )
-}
+  );
+};
 
-const TextureScene = ({renderTarget, bkgColor, ...props}) => {
-  const cam = useRef()
+const TextureScene = ({ renderTarget, bkgColor, textColor, ...props }) => {
+  const cam = useRef();
 
   const [scene] = useMemo(() => {
-    const scene = new THREE.Scene()
-    scene.background = new THREE.Color(bkgColor)
-    renderTarget.samples = 8
-    return [scene]
-  }, [])
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(bkgColor);
+    return [scene];
+  }, []);
 
   useFrame((state) => {
-  	state.gl.autoClear = false
-    state.gl.setRenderTarget(renderTarget)
-    state.gl.render(scene, cam.current)
-    state.gl.setRenderTarget(null)
-  })
+    state.gl.setRenderTarget(renderTarget);
+    state.gl.render(scene, cam.current);
+    state.gl.setRenderTarget(null);
+  });
 
   return (
     <>
       <PerspectiveCamera ref={cam} position={[0, 0, 3]} />
-      {createPortal(<TextScene />, scene)}
+      {createPortal(<SpinningThing textColor={textColor} />, scene)}
     </>
-  )
-}
+  );
+};
 
-const Text2Textures = ({renderTargets}) => {
+const Text2Textures = () => {
+  const [pageTypeToBkgColorMapping, pageTypeToTextPrimaryColorMapping] = useStore((state) => [
+    state.pageTypeToBkgColorMapping,
+    state.pageTypeToTextPrimaryColorMapping,
+  ]);
+  const stickFaceRenderTargets = useStore((state) => state.stickFaceRenderTargets);
 
-  const [pageTypeToBkgColorMapping, pageTypeToTextPrimaryColorMapping] = useStore(state => [state.pageTypeToBkgColorMapping, state.pageTypeToTextPrimaryColorMapping])
-  
   const setUpStickTexture = (renderTarget, text, modeIndex) => {
     // Temp for now.
-    const testFontPath = 'fonts/Lato-Black'
+    const testFontPath = "fonts/Lato-Black";
 
-    return (<TextureScene 
-              key={modeIndex}
-              renderTarget={renderTarget}
-              text={text} 
-              bkgColor={pageTypeToBkgColorMapping(modeIndex)} 
-              textColor={pageTypeToTextPrimaryColorMapping(modeIndex)} 
-            />)
-  }
+    return (
+      <TextureScene
+        key={modeIndex}
+        renderTarget={renderTarget}
+        text={text}
+        bkgColor={pageTypeToBkgColorMapping(modeIndex)}
+        textColor={pageTypeToTextPrimaryColorMapping(modeIndex)}
+      />
+    );
+  };
 
   const textureScenes = [
-    setUpStickTexture(renderTargets[0], 'Test1', 1),
-    setUpStickTexture(renderTargets[1], 'Test2', 2),
-    setUpStickTexture(renderTargets[2], 'Test3', 3),
-    setUpStickTexture(renderTargets[3], 'Test4', 4),
-  ]
+    setUpStickTexture(stickFaceRenderTargets[0], "Test1", 1),
+    setUpStickTexture(stickFaceRenderTargets[1], "Test2", 2),
+    setUpStickTexture(stickFaceRenderTargets[2], "Test3", 3),
+    setUpStickTexture(stickFaceRenderTargets[3], "Test4", 4),
+  ];
 
-  return(
-    <>
-      {textureScenes}
-    </>
-  )
-}
+  return <>{textureScenes}</>;
+};
 
-export default Text2Textures
+export default Text2Textures;
