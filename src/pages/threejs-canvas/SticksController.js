@@ -8,7 +8,7 @@ import Stick from "./Stick.js";
 
 const SticksController = () => {
   // States from zustand.
-  const getIsInIntroState = useStore((state) => state.getIsInIntroState);
+  const getIntroProgress = useStore((state) => state.getIntroProgress);
   const [lastClickedStickIndex, setClickedStickIndex] = useStore((state) => [
     state.lastClickedStickIndex,
     state.setClickedStickIndex,
@@ -61,7 +61,7 @@ const SticksController = () => {
 
   const stickSelectedCallback = (index) => {
     // Interaction is disabled if not in intro screen state
-    if (!getIsInIntroState()) return;
+    if (!(getIntroProgress() == 0)) return;
     clock.start();
 
     setIndMoveCount(0);
@@ -95,8 +95,26 @@ const SticksController = () => {
     if (rightInd >= stickConstants.numSticks && leftInd < 0) clock.stop();
   });
 
+  /** Light controller */
+
+  const directionalLight = useRef();
+  const ambientLight = useRef();
+  const currentBkgColor = useStore((state) => state.currentBkgColor);
+  useFrame((state) => {
+    // Update camera vector
+    const cameraVector = new THREE.Vector3();
+    state.camera.getWorldPosition(cameraVector);
+    directionalLight.current.position.set(cameraVector.x, cameraVector.y, cameraVector.z);
+    if (getIntroProgress() > 0) {
+      //ambientLight.current.intensity = getIntroProgress();
+      //ambientLight.current.color.setStyle(currentBkgColor);
+    }
+  });
+
   return (
     <>
+      <ambientLight intensity={0.6} ref={ambientLight} />
+      <directionalLight intensity={1} ref={directionalLight} castShadow />
       {sticks.map((stick) => {
         return (
           <Stick

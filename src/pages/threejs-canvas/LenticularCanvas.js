@@ -49,6 +49,7 @@ const LenticularCanvas = () => {
       />
       <div alpha={1} style={canvasStyle} ref={canvasRef}>
         <Canvas
+          shadowMap
           orthographic
           alpha={1}
           onCreated={({ gl, camera }) => {

@@ -12,7 +12,7 @@ const Stick = ({ index, numSticks, textures, destRotation, stickSelectedCallback
   const lastClickedStickIndex = useStore((state) => state.lastClickedStickIndex);
   const [isHovered, setIsHovered] = useState(false);
   const stickRef = useRef();
-  const material = useRef();
+  const light = useRef();
   const width = stickConstants.stickWidth;
   const height = stickConstants.stickHeight;
 
@@ -45,6 +45,7 @@ const Stick = ({ index, numSticks, textures, destRotation, stickSelectedCallback
   };
 
   useFrame(() => {
+    // Update stick rotation
     if (isHovered && getIsInIntroState()) {
       // If hovered and in intro state, apply some effect to the hovered stick.
       stickRef.current.rotation.y += 0.05;
@@ -75,13 +76,14 @@ const Stick = ({ index, numSticks, textures, destRotation, stickSelectedCallback
     <mesh
       ref={stickRef}
       receiveShadow
+      castShadow
       onClick={(e) => stickSelectedCallback(index)}
       onPointerOver={stickHoveredIn}
       onPointerOut={stickHoveredOut}
     >
       <boxBufferGeometry attach="geometry" args={[width, height, width]} />
+      {/*<meshStandardMaterial attach="material" color="#ffc428" roughness={0.5} metalic={0} /> */}
       <customMaterial
-        ref={material}
         attach="material"
         index={index}
         numSticks={numSticks}

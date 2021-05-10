@@ -7,17 +7,24 @@ import { constants, useStore } from "./Store.js";
 
 const SpinningThing = ({ textColor }) => {
   const mesh = useRef();
+  const directionalLight = useRef();
   const objectColor = new THREE.Color(textColor);
   useEffect(() => {
-    console.log("textColor is ", objectColor);
-  });
-  useFrame(() => {
+    console.log("Textcolor is ", textColor);
+  }, []);
+  useFrame((state) => {
     mesh.current.rotation.x = mesh.current.rotation.y = mesh.current.rotation.z += 0.01;
+    const cameraVector = new THREE.Vector3();
+    state.camera.getWorldPosition(cameraVector);
+    directionalLight.current.position.set(cameraVector.x, cameraVector.y, cameraVector.z);
   });
   return (
-    <TorusKnot ref={mesh} args={[1, 0.4, 100, 64]}>
-      <meshNormalMaterial attach="material" color={"orange"} />
-    </TorusKnot>
+    <>
+      <directionalLight intensity={1} ref={directionalLight} castShadow />
+      <TorusKnot ref={mesh} args={[1, 0.4, 100, 64]}>
+        <meshStandardMaterial attach="material" color={textColor} roughness={0.0} metalic={1} />
+      </TorusKnot>
+    </>
   );
 };
 

@@ -63,8 +63,12 @@ const useStore = create((set, get) => ({
         scroller: scroller,
       },
     }),
-  getIsInIntroState: () => {
-    return get().introScrollTrigger.scroller.scrollY <= 0;
+  getIntroProgress: () => {
+    const curr = get().introScrollTrigger.scroller.scrollY;
+    const start = get().introScrollTrigger.start;
+    const end = get().introScrollTrigger.end;
+    //console.log("curr: ", curr, "start: ", start, "end: ", end)
+    return THREE.MathUtils.clamp((curr - start) / (end - start), 0, 1);
   },
 
   isLenticularTweenScrollingDown: 1,
