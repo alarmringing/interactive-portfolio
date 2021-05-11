@@ -1,101 +1,13 @@
 import { ShaderMaterial, Color, ShaderChunk, UniformsUtils, UniformsLib } from "three";
+import lenticularVert from "./shaders/lenticular_vert.glsl.js";
+import lenticularFrag from "./shaders/lenticular_frag.glsl.js";
 import { extend } from "react-three-fiber";
 
 class CustomMaterial extends ShaderMaterial {
 	constructor() {
 		super({
-			vertexShader: [
-				"attribute float side;",
-				"out float vSide;",
-
-				"out vec2 vUv;",
-				"out vec3 vViewPosition;",
-				ShaderChunk.common,
-				ShaderChunk.lights_pars_begin,
-				ShaderChunk.lights_pars_maps,
-				ShaderChunk.shadowmap_pars_vertex,
-
-				"void main() {",
-				"vSide = side;",
-				"vUv = uv;",
-
-				ShaderChunk.beginnormal_vertex,
-				ShaderChunk.defaultnormal_vertex,
-
-				ShaderChunk.begin_vertex,
-				ShaderChunk.project_vertex,
-				//"vViewPosition = - mvPosition.xyz;",
-				ShaderChunk.worldpos_vertex,
-				ShaderChunk.shadowmap_vertex,
-				"}",
-			].join("\n"),
-			// vertexShader: [
-			// 	"attribute float side;",
-			// 	"out float vSide;",
-			// 	"out vec3 vNormal;",
-			// 	"out vec2 vUv;",
-
-			// 	"out vec3 vViewPosition;",
-			// 	"out vec3 fPosition;",
-			// 	"out vec2 vUvM;",
-			// 	ShaderChunk.common,
-			// 	ShaderChunk.lights_pars_begin,
-			// 	ShaderChunk.shadowmap_pars_vertex,
-
-			// 	"void main() {",
-			// 	"vSide = side;",
-			// 	"vUv = uv;",
-			// 	"vNormal = (modelViewMatrix * vec4(normal, 0.)).xyz;",
-			// 	"gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);",
-			// 	ShaderChunk.shadowmap_vertex,
-			// 	"}",
-			// ].join("\n"),
-			fragmentShader: [
-				"uniform sampler2D[6] textures;",
-				"uniform float numSticks;",
-				"uniform float index;",
-				"uniform vec3 topBottomColor;",
-				"uniform vec3 cameraVector;",
-
-				ShaderChunk.common,
-				ShaderChunk.bsdfs,
-				ShaderChunk.packing,
-				ShaderChunk.lights_pars_begin,
-				ShaderChunk.lights_pars_maps,
-				ShaderChunk.lights_physical_pars_fragment,
-				ShaderChunk.shadowmap_pars_fragment,
-				ShaderChunk.shadowmask_pars_fragment,
-
-				"in float vSide;",
-				//"in vec3 vNormal;",
-				"in vec2 vUv;",
-
-				"void main() {",
-				// This is the part that actually calculates the pixel color.
-				"float boxSide = floor(vSide + 0.1);",
-				"vec4 finalColor;",
-				"vec2 uvVal = vec2((1./numSticks)*index + (vUv.x/numSticks), vUv.y);",
-				"if (boxSide == 0.) finalColor = texture2D( textures[3], uvVal ); // SIDE D",
-				"else if (boxSide == 1.) finalColor = texture2D( textures[1], uvVal ); // SIDE B",
-				"else if (boxSide == 2.) finalColor = vec4(topBottomColor, 1.); //texture2D( textures[2], uvVal ); // TOP",
-				"else if (boxSide == 3.) finalColor = vec4(topBottomColor, 1.); //texture2D( textures[3], uvVal ); // BOTTOM",
-				"else if (boxSide == 4.) finalColor = texture2D( textures[0], uvVal ); // SIDE A",
-				"else if (boxSide == 5.) finalColor = texture2D( textures[2], uvVal ); // SIDE C",
-
-				// Attempts to enable shadows.
-				"finalColor = vec4(0.5, 0.8, 0.2, 1.);",
-				"vec3 shadowColor = vec3(0, 0, 0);",
-				"float shadowPower = 0.9;",
-
-				// ShaderChunk.lights_fragment_begin,
-				// ShaderChunk.lights_fragment_maps,
-				// ShaderChunk.lights_fragment_end,
-
-				//"gl_FragColor = vec4( finalColor, 1.);",
-				"gl_FragColor = vec4( mix(finalColor.xyz, shadowColor, (1.0 - getShadowMask()) * shadowPower), 1.0);",
-
-				"}",
-			].join("\n"),
+			vertexShader: lenticularVert,
+			fragmentShader: lenticularFrag,
 			uniforms: UniformsUtils.merge([
 				UniformsLib.common,
 				UniformsLib.lights,
@@ -106,9 +18,6 @@ class CustomMaterial extends ShaderMaterial {
 					numSticks: { value: 1 },
 					topBottomColor: { value: [1, 1, 1] },
 					cameraVector: { value: [1, 1, 1] },
-
-					mapMain: { value: null },
-					mapGlow: { value: null },
 				},
 			]),
 			lights: true,
