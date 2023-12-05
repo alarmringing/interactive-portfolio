@@ -114,7 +114,7 @@ const SticksController = () => {
   return (
     <>
       <ambientLight intensity={0.6} ref={ambientLight} />
-      <directionalLight intensity={1} ref={directionalLight} castShadow />
+      <directionalLight intensity={0.3} ref={directionalLight} castShadow />
       {sticks.map((stick) => {
         return (
           <Stick

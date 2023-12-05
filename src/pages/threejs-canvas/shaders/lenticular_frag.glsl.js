@@ -98,6 +98,7 @@ void main() {
 	vec4 diffuseColor = vec4( diffuse, opacity );
 	ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
 	vec3 totalEmissiveRadiance = emissive;
+	//vec3 totalEmissiveRadiance = finalColor.xyz;
 
 	#ifdef TRANSMISSION
 		float totalTransmission = transmission;
@@ -141,6 +142,7 @@ void main() {
 	#include <premultiplied_alpha_fragment>
 	#include <dithering_fragment>
 
+	//gl_FragColor = vec4(diffuse, 1.);
 	gl_FragColor = vec4(gl_FragColor.r * finalColor.r, gl_FragColor.g * finalColor.g, gl_FragColor.b * finalColor.b, gl_FragColor.a);
 
 }
